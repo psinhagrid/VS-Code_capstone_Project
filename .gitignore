@@ -1,0 +1,8 @@
+venv/bin/
+venv/lib/
+venv/include/
+venv/YOLO-weights/
+venv/YOLO-fine_tuner/
+venv/YOLO_basics/*.png
+venv/YOLO_basics/*.mp4
+
