@@ -205,10 +205,11 @@ def class_to_track(img, box, cls, detections, current_class, class_names, object
 
 """   Program to capture video from the device.     """
 
-##    cv2.waitKey(0) VS cv2.waitKey(1) difference is 1 will cintinue execution after 1ms delay and 0 will wait till key given
+##    cv2.waitKey(0) VS cv2.waitKey(1) difference is 1 will continue execution after 1ms delay and 0 will wait till key given
 
-address1 = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/helmet.mp4'
-address2 = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/helmet2.mp4'
+# Videos for testing
+address1 = 'venv/YOLO_basics/helmet.mp4'
+# address2 = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/helmet2.mp4'    
 
 address = address1
 
