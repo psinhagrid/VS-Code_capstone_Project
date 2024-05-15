@@ -13,7 +13,7 @@ from sort import *
 
 #model = YOLO('venv/YOLO-weights/yolov8l.pt')
 
-model = YOLO('/Users/psinha/Documents/capstone_project/fine_tuned_weights.pt')
+model = YOLO('fine_tuned_weights.pt')
 
 
 ## Yolo class names 
