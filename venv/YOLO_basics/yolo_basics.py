@@ -5,6 +5,7 @@ import torch
 import math
 from sort import *
 
+#class_names only set to ['Persons']
 
 ###############################################################################################
 
@@ -13,11 +14,13 @@ from sort import *
 
 #model = YOLO('venv/YOLO-weights/yolov8l.pt')
 
-model = YOLO('/Users/psinha/Documents/capstone_project/fine_tuned_weights.pt')
+model = YOLO('fine_tuned_weights.pt')
 
 
 ## Yolo class names 
 className = [
+    'Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', "Safety Cone", 'Safety Vest', 
+    'machinery', 'vehicle', 
     'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
     'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
     'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
@@ -26,8 +29,7 @@ className = [
     'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
     'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
     'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
-    'scissors', 'teddy bear', 'hair drier', 'toothbrush','Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 
-    'NO-Safety Vest', 'Person', "Safety Cone", 'Safety Vest', 'machinery', 'vehicle'
+    'scissors', 'teddy bear', 'hair drier', 'toothbrush'
 ]
 
 className_finetuned = ['Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', 
@@ -40,13 +42,24 @@ frame_number = 0
 # Voilations dictionary initialized
 voilation_dict = {}
 
+# violators count:
+violators_count = 0 
+
+violator_ID = []
 ###############################################################################################
 
 """       UTILS         """
 
-def raise_flag():
-
+def raise_flag(Id):
     print ("Flag_raised")
+    global violators_count
+    violators_count += 1
+    global violator_ID
+    violator_ID.append(Id)
+
+
+
+    
    
 
 
@@ -67,7 +80,8 @@ def bounding_box(box,img, show_box_for_all):
 
 
     if show_box_for_all == True:
-        cvzone.cornerRect(img, (x1,y1,w,h))
+        #cvzone.cornerRect(img, (x1,y1,w,h))
+        pass
 
 
     # Confidence Level Calculation
@@ -75,57 +89,59 @@ def bounding_box(box,img, show_box_for_all):
     return x1,y1,x2,y2,conf
 
 
-def object_counter(img, box, x_center, y_center, Id, currentClass):
+def anomaly_detector(img, box, x_center, y_center, Id, currentClass):
 
     global current_count
     global voilation_dict
     global frame_number
 
+    if (currentClass in ('NO-Safety Vest')):
 
-
-    if (Id not in voilation_dict.keys()):
-        voilation_dict[Id] = [frame_number, 1]
-
-    else :
-        
-        if (voilation_dict[Id][1] == -999):
-            pass
-
-
-        elif (voilation_dict[Id][0] in range (frame_number-15, frame_number+15)):
-
-            if (voilation_dict[Id][1] == 9):
-                voilation_dict[Id][1] = -999
-                raise_flag()
-
-            else :
-                voilation_dict[Id][0] = frame_number
-                voilation_dict[Id][1] += 1
-
-        elif (voilation_dict[Id][0] not in range (frame_number-15, frame_number+15)):
-
-            voilation_dict[Id][0] == frame_number
-            voilation_dict[Id][1] = 1
+        print ("ID : ",Id)
+        print ("\n")
+        if (Id not in voilation_dict.keys() and Id != None):
+            voilation_dict[Id] = [frame_number, 1]
 
         else :
-
-            print ("UNKNOWN VIOLATION")
-            quit()
             
+            if (voilation_dict[Id][1] == -999):
+                #print ("\n\n PASSED")
+                pass
+
+
+            elif (voilation_dict[Id][0] in range (frame_number-20, frame_number+20)):
+            
+                print ("\nDICT_value : ", voilation_dict[Id][1])
+                print ("\n")
+                if (voilation_dict[Id][1] == 30):
+                    voilation_dict[Id][1] = -999
+                    #print ("\n\n ENTERED FRAME ")
+                    #print (voilation_dict[1][1])
+                    raise_flag(Id)
+
+                else :
+                    voilation_dict[Id][0] = frame_number
+                    voilation_dict[Id][1] += 1
+                    #print ("\n Frame Number", frame_number)
+                    #print (voilation_dict[1][1])
+
+            elif (voilation_dict[Id][0] not in range (frame_number-10, frame_number+10)):
+                quit()
+                voilation_dict[Id][0] = frame_number
+                voilation_dict[Id][1] = 1
+                #print ("\n Frame Number", frame_number)
+                #print (voilation_dict[1][1])
+
+            else :
+
+                print ("UNKNOWN VIOLATION")
+                quit()
+                
                 
 
 
-    #frame = raise_flag(img)
-    # if limits[0] < x_center < limits[2] and limits[1] - 15 < y_center < limits[3] + 15:
-    #     if current_count.count(Id) == 0:
-    #         current_count.append(Id)
-            
 
-
-    #cvzone.putTextRect(img, f'Count : {len(current_count)}', (50,50))
-
-
-def object_ID(img, box, cls, result_tracker, current_class, class_names, object_counter_requirement):
+def object_ID(img, box, cls, result_tracker, current_Class, class_names, object_counter_requirement,conf):
 
     """
         Function will make a rectangle against selected class and will also display the ID for tracking
@@ -138,20 +154,16 @@ def object_ID(img, box, cls, result_tracker, current_class, class_names, object_
         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
         w, h = x2 - x1, y2 - y1
         
-        # Class Name
-        cls = int(box.cls[0])
-        currentClass = className[cls]
-        
-        # Display the ID on the image
-        cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x1+w-10, 0), max(y1 - 10, 0)), 1.5, 2)
+
+        cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x1+w-10, 0), max(y1 -10, 0) ), 1.5, 2)
 
         x_center = x1+w//2
         y_center = y1+h//2
 
-
+        #print ("\nID is : ",Id)
 
         if object_counter_requirement == True:
-            object_counter(img, box, x_center, y_center, Id, currentClass)
+            anomaly_detector(img, box, x_center, y_center, Id, current_Class)
 
             
 
@@ -178,16 +190,18 @@ def class_to_track(img, box, cls, detections, current_class, class_names, object
         frame_number += 1
 
         x1,y1,x2,y2,conf = bounding_box(box,img, show_box_for_all=True)
+        
         current_array = np.array([x1,y1,x2,y2,conf])        
         detections = np.vstack((detections, current_array))     # Giving labels
 
         cvzone.putTextRect(img,f'{className[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 2, 2)
-        #cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
+        cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
 
         resultTracker = tracker.update(detections)
 
-        
-        object_ID(img, box, cls, resultTracker, current_class, class_names, object_counter_requirement)
+        print ("Frame Number : ", frame_number)
+
+        object_ID(img, box, cls, resultTracker, current_class, class_names, object_counter_requirement,conf)
 
 
 
@@ -207,8 +221,9 @@ def class_to_track(img, box, cls, detections, current_class, class_names, object
 
 ##    cv2.waitKey(0) VS cv2.waitKey(1) difference is 1 will cintinue execution after 1ms delay and 0 will wait till key given
 
-address1 = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/helmet.mp4'
-address2 = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/helmet2.mp4'
+address1 = 'venv/YOLO_basics/helmet.mp4'
+address2 = 'venv/YOLO_basics/helmet2.mp4'
+address3 = 'venv/YOLO_basics/helmet3.mp4'
 
 address = address1
 
@@ -221,8 +236,9 @@ object_counter_requirement = True
 
 
 # Set required class list
-class_names = ['Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', "Safety Cone",
-                 'Safety Vest', 'machinery', 'vehicle']
+#class_names = ['Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', "Safety Cone",'Safety Vest', 'machinery', 'vehicle']
+
+class_names = [ 'NO-Safety Vest', 'NO-Mask']
 
 
 
@@ -230,23 +246,14 @@ class_names = ['Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Pe
 
 ###############################################################################################
 
-""" Initializing Tracker and Limits for the line for car counting  """
-
 # Tracking
-tracker = Sort(max_age=20, min_hits=2, iou_threshold=0.3)   # Used for tracking of cars
-
-
+tracker = Sort(max_age=50, min_hits=10, iou_threshold=0.3)   # Used for tracking of cars
 
 ###############################################################################################
 
 
 def main(address, video_mode, object_counter_requirement, class_names):
 
-
-
-
-    # Tracking
-    tracker = Sort(max_age=20, min_hits=2, iou_threshold=0.3)   # Used for tracking of cars
 
     if video_mode == "LIVE":
         #  For Live video capture
@@ -274,7 +281,6 @@ def main(address, video_mode, object_counter_requirement, class_names):
             break  # Exit the loop if reading fails
 
         if video_mode == "MP4":
-            #imgRegion = cv2.bitwise_and(img,mask)       # Bitwise And of video and mask
             imgRegion = img
             result = model(imgRegion,device = "mps" ,stream = True)    # Use mps and stream feature 
 
@@ -295,8 +301,9 @@ def main(address, video_mode, object_counter_requirement, class_names):
 
                 # Class Name Display
                 cls = int(box.cls[0])
-                cls += 80
+                #cls += 80
                 currentClass = className[cls]
+                #print ("\n\n current_count = ",currentClass)
 
 
                 # Call detections with args detections, Current Class, Interested Classes
@@ -310,7 +317,11 @@ def main(address, video_mode, object_counter_requirement, class_names):
         torch.mps.empty_cache()
         cv2.waitKey(1)
 
-        print ("Frame Number : ", frame_number)
+        
+
+
+    print (violators_count)
+    print (violator_ID)
 
 
     """
