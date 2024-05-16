@@ -15,6 +15,7 @@ from sort import *
 #model = YOLO('venv/YOLO-weights/yolov8l.pt')
 
 model = YOLO('fine_tuned_weights.pt')
+model = YOLO('fine_tuned_weights.pt')
 
 
 ## Yolo class names 
@@ -219,7 +220,7 @@ def class_to_track(img, box, cls, detections, current_class, class_names, object
 
 """   Program to capture video from the device.     """
 
-##    cv2.waitKey(0) VS cv2.waitKey(1) difference is 1 will cintinue execution after 1ms delay and 0 will wait till key given
+##    cv2.waitKey(0) VS cv2.waitKey(1) difference is 1 will continue execution after 1ms delay and 0 will wait till key given
 
 address1 = 'venv/YOLO_basics/helmet.mp4'
 address2 = 'venv/YOLO_basics/helmet2.mp4'
