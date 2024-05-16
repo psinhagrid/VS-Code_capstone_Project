@@ -14,7 +14,7 @@ from sort import *
 
 #model = YOLO('venv/YOLO-weights/yolov8l.pt')
 
-model = YOLO('fine_tuned_weights.pt')
+
 model = YOLO('fine_tuned_weights.pt')
 
 
@@ -98,23 +98,23 @@ def anomaly_detector(img, box, x_center, y_center, Id, currentClass):
 
     if (currentClass in ('NO-Safety Vest')):
 
-        print ("ID : ",Id)
-        print ("\n")
+        global violation_count
+        print (violators_count) 
         if (Id not in voilation_dict.keys() and Id != None):
             voilation_dict[Id] = [frame_number, 1]
 
         else :
-            
+
             if (voilation_dict[Id][1] == -999):
                 #print ("\n\n PASSED")
                 pass
 
 
-            elif (voilation_dict[Id][0] in range (frame_number-20, frame_number+20)):
+            elif (voilation_dict[Id][0] in range (frame_number-10, frame_number+10)):
             
                 print ("\nDICT_value : ", voilation_dict[Id][1])
                 print ("\n")
-                if (voilation_dict[Id][1] == 30):
+                if (voilation_dict[Id][1] == 10):
                     voilation_dict[Id][1] = -999
                     #print ("\n\n ENTERED FRAME ")
                     #print (voilation_dict[1][1])
@@ -127,11 +127,11 @@ def anomaly_detector(img, box, x_center, y_center, Id, currentClass):
                     #print (voilation_dict[1][1])
 
             elif (voilation_dict[Id][0] not in range (frame_number-10, frame_number+10)):
-                quit()
+                #quit()
                 voilation_dict[Id][0] = frame_number
                 voilation_dict[Id][1] = 1
                 #print ("\n Frame Number", frame_number)
-                #print (voilation_dict[1][1])
+                
 
             else :
 
@@ -225,11 +225,12 @@ def class_to_track(img, box, cls, detections, current_class, class_names, object
 address1 = 'venv/YOLO_basics/helmet.mp4'
 address2 = 'venv/YOLO_basics/helmet2.mp4'
 address3 = 'venv/YOLO_basics/helmet3.mp4'
+address4 = 'venv/YOLO_basics/helmet4.mp4'
 
-address = address1
+address = address4
 
 # Available modes "LIVE" and "MP4"
-video_mode = "MP4"
+video_mode = "LIVE"
 
 
 # Set if object counter is needed. Options are True and False
@@ -239,7 +240,7 @@ object_counter_requirement = True
 # Set required class list
 #class_names = ['Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', "Safety Cone",'Safety Vest', 'machinery', 'vehicle']
 
-class_names = [ 'NO-Safety Vest', 'NO-Mask']
+class_names = [ 'NO-Safety Vest' ]
 
 
 
@@ -248,7 +249,7 @@ class_names = [ 'NO-Safety Vest', 'NO-Mask']
 ###############################################################################################
 
 # Tracking
-tracker = Sort(max_age=50, min_hits=10, iou_threshold=0.3)   # Used for tracking of cars
+tracker = Sort(max_age=200, min_hits=30, iou_threshold=0.3)   # Used for tracking of cars
 
 ###############################################################################################
 
