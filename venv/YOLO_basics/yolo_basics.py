@@ -4,6 +4,7 @@ import cvzone
 import torch
 import math
 from sort import *
+from API_call import *
 
 #class_names only set to ['Persons']
 
@@ -51,12 +52,18 @@ violator_ID = []
 
 """       UTILS         """
 
-def raise_flag(Id):
+def raise_flag(event_type: str, timestamp: str, frame: str , 
+                  location: Dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
+                  metadata: Dict[str, str], output_file: str):
     print ("Flag_raised")
     global violators_count
     violators_count += 1
     global violator_ID
-    violator_ID.append(Id)
+    violator_ID.append(employee_id)
+    generate_json(event_type, timestamp, frame, 
+                  location, confidence, employee_id, violation_type, severity_level, 
+                  metadata, output_file)
+
 
 
 
@@ -90,11 +97,13 @@ def bounding_box(box,img, show_box_for_all):
     return x1,y1,x2,y2,conf
 
 
-def anomaly_detector(img, box, x_center, y_center, Id, currentClass):
+def anomaly_detector(img, box, x1, y1, x2, y2, Id, currentClass, conf):
 
     global current_count
     global voilation_dict
     global frame_number
+
+    output_file_base = "venv/YOLO_basics/output_json/output"
 
     if (currentClass in ('NO-Safety Vest')):
 
@@ -118,7 +127,19 @@ def anomaly_detector(img, box, x_center, y_center, Id, currentClass):
                     voilation_dict[Id][1] = -999
                     #print ("\n\n ENTERED FRAME ")
                     #print (voilation_dict[1][1])
-                    raise_flag(Id)
+                    raise_flag(
+                    event_type="PPE Violation",
+                    timestamp="2024-07-01T14:23:45Z", 
+                    frame=frame_number, 
+                    location={"x1": x1, "y1": y1, "x2": x2, "y2": y2},
+                    confidence = conf,
+                    employee_id=Id,
+                    violation_type=currentClass,
+                    severity_level="high",
+                    metadata={"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},
+                    output_file = f"{output_file_base}_{violators_count+1}.json"
+                
+                    )
 
                 else :
                     voilation_dict[Id][0] = frame_number
@@ -164,7 +185,7 @@ def object_ID(img, box, cls, result_tracker, current_Class, class_names, object_
         #print ("\nID is : ",Id)
 
         if object_counter_requirement == True:
-            anomaly_detector(img, box, x_center, y_center, Id, current_Class)
+            anomaly_detector(img, box, x1, y1, x2, y2, Id, current_Class, conf)
 
             
 

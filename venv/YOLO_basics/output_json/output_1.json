@@ -1,0 +1,20 @@
+{
+    "event_type": "PPE Violation",
+    "timestamp": "2024-07-01T14:23:45Z",
+    "frame": 11,
+    "location": {
+        "x1": 402,
+        "y1": 382,
+        "x2": 620,
+        "y2": 668
+    },
+    "confidence": 0.34,
+    "employee_id": 1.0,
+    "violation_type": "NO-Safety Vest",
+    "severity_level": "high",
+    "metadata": {
+        "camera_id": "CAM01",
+        "location": "Warehouse Section A",
+        "environmental_conditions": "Normal"
+    }
+}
