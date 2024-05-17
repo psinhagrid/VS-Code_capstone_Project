@@ -230,7 +230,7 @@ address4 = 'venv/YOLO_basics/helmet4.mp4'
 address = address4
 
 # Available modes "LIVE" and "MP4"
-video_mode = "LIVE"
+video_mode = "MP4"
 
 
 # Set if object counter is needed. Options are True and False
