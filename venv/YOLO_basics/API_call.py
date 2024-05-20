@@ -37,13 +37,14 @@ def Gen_AI_call ():
 
 
 
-def generate_json(event_type: str, timestamp: str, frame: str , 
+def generate_json(image_encoded: str, event_type: str, timestamp: str, frame: str , 
                   location: Dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
                   metadata: Dict[str, str], output_file: str):
     """
     Generate a JSON file with the provided parameters and save it to the specified output file.
     
     Parameters:
+        image_encoded(str): This is the frame image encoded in 64 bit format. 
         event_type (str): The type of event (e.g., "PPE Violation").
         timestamp (str): The timestamp of the event in ISO 8601 format.
         frame (str): The base64 encoded frame data.
@@ -57,6 +58,7 @@ def generate_json(event_type: str, timestamp: str, frame: str ,
         output_file (str): The path to the output JSON file.
     """
     data = {
+        "image_encoded": image_encoded,
         "event_type": event_type,
         "timestamp": timestamp,
         "frame": frame,
@@ -71,6 +73,8 @@ def generate_json(event_type: str, timestamp: str, frame: str ,
     
     with open(output_file, "w") as f:
         json.dump(data, f, indent=4)
+
+
 
 
 # Example usage:

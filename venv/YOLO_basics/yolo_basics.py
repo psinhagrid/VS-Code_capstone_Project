@@ -1,10 +1,14 @@
 from ultralytics import YOLO
 import cv2
+import base64
+from PIL import Image
+import base64
 import cvzone
 import torch
 import math
 from sort import *
 from API_call import *
+from Utils import *
 
 #class_names only set to ['Persons']
 
@@ -13,7 +17,7 @@ from API_call import *
 
 ## Initialize the model 
 
-#model = YOLO('venv/YOLO-weights/yolov8l.pt')
+#  model = YOLO('venv/YOLO-weights/yolov8l.pt')
 
 
 model = YOLO('fine_tuned_weights.pt')
@@ -52,7 +56,10 @@ violator_ID = []
 
 """       UTILS         """
 
-def raise_flag(event_type: str, timestamp: str, frame: str , 
+
+
+
+def raise_flag(img, event_type: str, timestamp: str, frame: str , 
                   location: Dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
                   metadata: Dict[str, str], output_file: str):
     print ("Flag_raised")
@@ -60,15 +67,13 @@ def raise_flag(event_type: str, timestamp: str, frame: str ,
     violators_count += 1
     global violator_ID
     violator_ID.append(employee_id)
-    generate_json(event_type, timestamp, frame, 
+    image_encoded = compress_image_to_base64(img, quality=20)
+    generate_json(image_encoded, event_type, timestamp, frame, 
                   location, confidence, employee_id, violation_type, severity_level, 
                   metadata, output_file)
 
 
 
-
-    
-   
 
 
 
@@ -128,6 +133,7 @@ def anomaly_detector(img, box, x1, y1, x2, y2, Id, currentClass, conf):
                     #print ("\n\n ENTERED FRAME ")
                     #print (voilation_dict[1][1])
                     raise_flag(
+                    img = img,
                     event_type="PPE Violation",
                     timestamp="2024-07-01T14:23:45Z", 
                     frame=frame_number, 
@@ -248,7 +254,7 @@ address2 = 'venv/YOLO_basics/helmet2.mp4'
 address3 = 'venv/YOLO_basics/helmet3.mp4'
 address4 = 'venv/YOLO_basics/helmet4.mp4'
 
-address = address4
+address = address3
 
 # Available modes "LIVE" and "MP4"
 video_mode = "MP4"
