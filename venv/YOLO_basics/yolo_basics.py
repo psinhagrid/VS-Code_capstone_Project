@@ -110,7 +110,7 @@ def anomaly_detector(img, box, x1, y1, x2, y2, Id, currentClass, conf):
 
     output_file_base = "venv/YOLO_basics/output_json/output"
 
-    if (currentClass in ('NO-Safety Vest')):
+    if (currentClass in ('NO-Safety Vest', 'NO_Hardhat', 'NO-Mask')):
 
         global violation_count
         print (violators_count) 
