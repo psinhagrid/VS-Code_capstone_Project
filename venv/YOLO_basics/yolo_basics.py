@@ -68,7 +68,7 @@ def raise_flag(img, event_type: str, timestamp: str, frame: str ,
     global violator_ID
     violator_ID.append(employee_id)
     image_encoded = compress_image_to_base64(img, quality=20)
-    generate_json(event_type, timestamp, frame, 
+    generate_json(image_encoded, event_type, timestamp, frame, 
                   location, confidence, employee_id, violation_type, severity_level, 
                   metadata, output_file)
 
@@ -256,7 +256,7 @@ address2 = 'venv/YOLO_basics/helmet2.mp4'
 address3 = 'venv/YOLO_basics/helmet3.mp4'
 address4 = 'venv/YOLO_basics/helmet4.mp4'
 
-address = address1
+address = address3
 
 # Available modes "LIVE" and "MP4"
 video_mode = "MP4"

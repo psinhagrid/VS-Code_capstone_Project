@@ -37,7 +37,7 @@ def Gen_AI_call ():
 
 
 
-def generate_json( event_type: str, timestamp: str, frame: str , 
+def generate_json( image_encoded, event_type: str, timestamp: str, frame: str , 
                   location: Dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
                   metadata: Dict[str, str], output_file: str):
     """
@@ -59,6 +59,7 @@ def generate_json( event_type: str, timestamp: str, frame: str ,
     """
     data = {
         #"image_encoded": image_encoded,
+        "image_encoded": image_encoded,
         "event_type": event_type,
         "timestamp": timestamp,
         "frame": frame,
