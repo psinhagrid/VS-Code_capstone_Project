@@ -68,7 +68,7 @@ def raise_flag(img, event_type: str, timestamp: str, frame: str ,
     global violator_ID
     violator_ID.append(employee_id)
     image_encoded = compress_image_to_base64(img, quality=20)
-    generate_json(image_encoded, event_type, timestamp, frame, 
+    generate_json(event_type, timestamp, frame, 
                   location, confidence, employee_id, violation_type, severity_level, 
                   metadata, output_file)
 
@@ -115,7 +115,7 @@ def anomaly_detector(img, box, x1, y1, x2, y2, Id, currentClass, conf):
         global violation_count
         print (violators_count) 
         if (Id not in voilation_dict.keys() and Id != None):
-            voilation_dict[Id] = [frame_number, 1]
+            voilation_dict[Id] = [frame_number, 1, conf]
 
         else :
 
@@ -138,7 +138,7 @@ def anomaly_detector(img, box, x1, y1, x2, y2, Id, currentClass, conf):
                     timestamp="2024-07-01T14:23:45Z", 
                     frame=frame_number, 
                     location={"x1": x1, "y1": y1, "x2": x2, "y2": y2},
-                    confidence = conf,
+                    confidence = voilation_dict[Id][2],
                     employee_id=Id,
                     violation_type=currentClass,
                     severity_level="high",
@@ -150,6 +150,7 @@ def anomaly_detector(img, box, x1, y1, x2, y2, Id, currentClass, conf):
                 else :
                     voilation_dict[Id][0] = frame_number
                     voilation_dict[Id][1] += 1
+                    voilation_dict[Id][2] = max(voilation_dict[Id][2], conf)
                     #print ("\n Frame Number", frame_number)
                     #print (voilation_dict[1][1])
 
@@ -157,6 +158,7 @@ def anomaly_detector(img, box, x1, y1, x2, y2, Id, currentClass, conf):
                 #quit()
                 voilation_dict[Id][0] = frame_number
                 voilation_dict[Id][1] = 1
+                voilation_dict[Id][2] = conf
                 #print ("\n Frame Number", frame_number)
                 
 
