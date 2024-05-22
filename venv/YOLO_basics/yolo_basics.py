@@ -10,7 +10,7 @@ from sort import *
 from API_call import *
 from Utils import *
 
-#class_names only set to ['Persons']
+
 
 ###############################################################################################
 
