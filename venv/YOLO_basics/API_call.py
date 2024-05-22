@@ -6,6 +6,9 @@ import json
 from typing import List, Dict
 
 def Gen_AI_call ():
+
+    # In the following image, what is the location of person not wearing safety vest? That person should have ID of 1 at the bottom of the box. Give that person's location with respect to the image and other people in the image. Is the person on the left or right of the image?
+    
     # Instantiate the Groq client object with the API key
     client = Groq(api_key='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')
 
@@ -37,9 +40,9 @@ def Gen_AI_call ():
 
 
 
-def generate_json( image_encoded, event_type: str, timestamp: str, frame: str , 
+def generate_json( description: str, event_type: str, timestamp: str, frame: str , 
                   location: Dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
-                  metadata: Dict[str, str], output_file: str):
+                  metadata: Dict[str, str], image_encoded, output_file: str,):
     """
     Generate a JSON file with the provided parameters and save it to the specified output file.
     
@@ -58,8 +61,8 @@ def generate_json( image_encoded, event_type: str, timestamp: str, frame: str ,
         output_file (str): The path to the output JSON file.
     """
     data = {
-        #"image_encoded": image_encoded,
-        "image_encoded": image_encoded,
+        "description": description,
+        
         "event_type": event_type,
         "timestamp": timestamp,
         "frame": frame,
@@ -69,6 +72,7 @@ def generate_json( image_encoded, event_type: str, timestamp: str, frame: str ,
         "violation_type": violation_type,
         "severity_level": severity_level,
         "metadata": metadata,
+        "image_encoded": image_encoded,
 
     }
     

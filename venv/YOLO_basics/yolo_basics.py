@@ -58,19 +58,46 @@ violator_ID = []
 
 
 
+def make_description(location: Dict[str, int], confidence: int, employee_id: str, violation_type: str):
+
+    if (location["x1"] < 1280/2):
+        location_of_person = "left"
+    else : 
+        location_of_person = "right"
+
+    
+    confidence_percent = round(confidence * 100, 2)
+
+    description_dict = {
+
+        "line1": "There is a violation of type NO-Safety Vest identified,",
+        "line2": f"We say this with {confidence_percent}% confidence.",
+        "line3": f"The person who has the violation is present on the {location_of_person} half of the image",
+        "line4": f"and is assigned an ID of {employee_id}."
+    }
+        
+
+    
+
+    
+
+    return description_dict
+
 
 def raise_flag(img, event_type: str, timestamp: str, frame: str , 
-                  location: Dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
+                  location: Dict[str, int], confidence: int, employee_id: str, violation_type: str, severity_level: str, 
                   metadata: Dict[str, str], output_file: str):
+    
     print ("Flag_raised")
     global violators_count
     violators_count += 1
     global violator_ID
     violator_ID.append(employee_id)
     image_encoded = compress_image_to_base64(img, quality=20)
-    generate_json(image_encoded, event_type, timestamp, frame, 
+    description = make_description(location, confidence, employee_id, violation_type)
+    generate_json(description,  event_type, timestamp, frame, 
                   location, confidence, employee_id, violation_type, severity_level, 
-                  metadata, output_file)
+                  metadata, image_encoded, output_file)
 
 
 
@@ -102,7 +129,7 @@ def bounding_box(box,img, show_box_for_all):
     return x1,y1,x2,y2,conf
 
 
-def anomaly_detector(img, box, x1, y1, x2, y2, Id, currentClass, conf):
+def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, currentClass: str, conf: int):
 
     global current_count
     global voilation_dict
@@ -171,7 +198,7 @@ def anomaly_detector(img, box, x1, y1, x2, y2, Id, currentClass, conf):
 
 
 
-def object_ID(img, box, cls, result_tracker, current_Class, class_names, object_counter_requirement,conf):
+def object_ID(img, box, cls: int, result_tracker, current_Class: str, class_names: List ,conf: int):
 
     """
         Function will make a rectangle against selected class and will also display the ID for tracking
@@ -185,15 +212,15 @@ def object_ID(img, box, cls, result_tracker, current_Class, class_names, object_
         w, h = x2 - x1, y2 - y1
         
 
-        cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x1+w-10, 0), max(y1 -10, 0) ), 1.5, 2)
+        cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
 
         x_center = x1+w//2
         y_center = y1+h//2
 
-        #print ("\nID is : ",Id)
 
-        if object_counter_requirement == True:
-            anomaly_detector(img, box, x1, y1, x2, y2, Id, current_Class, conf)
+
+        
+        anomaly_detector(img, box, x1, y1, x2, y2, Id, current_Class, conf)
 
             
 
@@ -203,7 +230,7 @@ def object_ID(img, box, cls, result_tracker, current_Class, class_names, object_
 
 
 
-def class_to_track(img, box, cls, detections, current_class, class_names, object_counter_requirement):
+def class_to_track(img, box, cls: int, detections, current_class: str, class_names: List ):
 
     """
         This function will make boxes and assign IDs to given classes. 
@@ -231,7 +258,7 @@ def class_to_track(img, box, cls, detections, current_class, class_names, object
 
         print ("Frame Number : ", frame_number)
 
-        object_ID(img, box, cls, resultTracker, current_class, class_names, object_counter_requirement,conf)
+        object_ID(img, box, cls, resultTracker, current_class, class_names ,conf)
 
 
 
@@ -256,7 +283,7 @@ address2 = 'venv/YOLO_basics/helmet2.mp4'
 address3 = 'venv/YOLO_basics/helmet3.mp4'
 address4 = 'venv/YOLO_basics/helmet4.mp4'
 
-address = address3
+address = address1
 
 # Available modes "LIVE" and "MP4"
 video_mode = "MP4"
@@ -283,7 +310,7 @@ tracker = Sort(max_age=200, min_hits=30, iou_threshold=0.3)   # Used for trackin
 ###############################################################################################
 
 
-def main(address, video_mode, object_counter_requirement, class_names):
+def main(address: str, video_mode: str, object_counter_requirement: bool, class_names: List):
 
 
     if video_mode == "LIVE":
@@ -332,13 +359,13 @@ def main(address, video_mode, object_counter_requirement, class_names):
 
                 # Class Name Display
                 cls = int(box.cls[0])
-                #cls += 80
+   
                 currentClass = className[cls]
                 #print ("\n\n current_count = ",currentClass)
 
 
                 # Call detections with args detections, Current Class, Interested Classes
-                detections = class_to_track(img, box, cls, detections, currentClass, class_names , object_counter_requirement)
+                detections = class_to_track(img, box, cls, detections, currentClass, class_names )
                 #call the ingestion api..
                 
                 

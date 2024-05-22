@@ -6,7 +6,7 @@ import numpy as np
 import json
 from kafka import KafkaProducer
 
-
+    
 def compress_image_to_base64(image, quality=20):
     """
     Compress an image and encode it to Base64.
@@ -56,7 +56,7 @@ def decode_image_from_json(json_file):
     return img
 
 
-# json_file = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/output_json/output_2.json'
+# json_file = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/output_json/output_1.json'
 # image = decode_image_from_json(json_file)
 # cv2.imshow("Decoded Image", image)
 # cv2.waitKey(0)
