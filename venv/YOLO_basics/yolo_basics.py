@@ -5,12 +5,11 @@ from PIL import Image
 import base64
 import cvzone
 import torch
-import math
 from sort import *
 from API_call import *
 from Utils import *
 
-
+#class_names only set to ['Persons']
 
 ###############################################################################################
 
@@ -26,20 +25,8 @@ model = YOLO('fine_tuned_weights.pt')
 ## Yolo class names 
 className = [
     'Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', "Safety Cone", 'Safety Vest', 
-    'machinery', 'vehicle', 
-    'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
-    'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-    'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
-    'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
-    'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
-    'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
-    'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
-    'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
-    'scissors', 'teddy bear', 'hair drier', 'toothbrush'
-]
+    'machinery', 'vehicle', 'person' ]
 
-className_finetuned = ['Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', 
-                       'Safety Cone', 'Safety Vest', 'machinery', 'vehicle']
 
 
 # Frame Counter initialized
@@ -91,9 +78,21 @@ def raise_flag(img, event_type: str, timestamp: str, frame: str ,
     print ("Flag_raised")
     global violators_count
     violators_count += 1
+
     global violator_ID
     violator_ID.append(employee_id)
-    image_encoded = compress_image_to_base64(img, quality=20)
+    
+    # Calculate width and height
+    x1, y1, x2, y2 = location["x1"], location["y1"], location["x2"], location["y2"]
+    w = x2 - x1
+    h = y2 - y1
+
+    # Draw the rectangle on the image
+    img_copy = img.copy()  # Create a copy of the original image
+    img_copy = cv2.rectangle(img, (x1,y1), (x2,y2), (0,0,255),5)     # Making rectangle
+
+
+    image_encoded = compress_image_to_base64(img_copy, quality=20)
     description = make_description(location, confidence, employee_id, violation_type)
     generate_json(description,  event_type, timestamp, frame, 
                   location, confidence, employee_id, violation_type, severity_level, 
@@ -212,7 +211,7 @@ def object_ID(img, box, cls: int, result_tracker, current_Class: str, class_name
         w, h = x2 - x1, y2 - y1
         
 
-        cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
+        # cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
 
         x_center = x1+w//2
         y_center = y1+h//2

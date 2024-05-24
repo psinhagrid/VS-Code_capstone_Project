@@ -5,8 +5,34 @@ from PIL import Image
 import numpy as np
 import json
 from kafka import KafkaProducer
+import math
 
+
+def bounding_box(box,img, show_box_for_all):
+
+    """    
+        Function to calculate confidence and make box for all recognized object 
     
+        Gives out co-ordinates of boxes, Put show_box_for_all == True to make a box for all detections
+    
+    """
+
+    # Bounding Box
+    x1,y1,x2,y2 = box.xyxy[0]  # Getting coorinates of bounding box
+    x1,y1,x2,y2 = int(x1), int(y1), int(x2), int(y2)    # Making integer values to make boxes in next step
+    w, h = x2-x1, y2-y1     # Calculating width and length 
+
+
+    if show_box_for_all == True:
+        #cvzone.cornerRect(img, (x1,y1,w,h))
+        pass
+
+
+    # Confidence Level Calculation
+    conf = math.ceil((box.conf[0]*100))/100     # Rounding off the confidence levels
+    return x1,y1,x2,y2,conf
+
+
 def compress_image_to_base64(image, quality=20):
     """
     Compress an image and encode it to Base64.
