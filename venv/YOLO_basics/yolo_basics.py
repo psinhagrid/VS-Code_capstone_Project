@@ -154,7 +154,7 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
             
                 print ("\nDICT_value : ", voilation_dict[Id][1])
                 print ("\n")
-                if (voilation_dict[Id][1] == 10):
+                if (voilation_dict[Id][1] == 50):
                     voilation_dict[Id][1] = -999
                     #print ("\n\n ENTERED FRAME ")
                     #print (voilation_dict[1][1])
@@ -211,7 +211,7 @@ def object_ID(img, box, cls: int, result_tracker, current_Class: str, class_name
         w, h = x2 - x1, y2 - y1
         
 
-        # cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
+        cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
 
         x_center = x1+w//2
         y_center = y1+h//2
@@ -304,7 +304,7 @@ class_names = [ 'NO-Safety Vest' ]
 ###############################################################################################
 
 # Tracking
-tracker = Sort(max_age=200, min_hits=30, iou_threshold=0.3)   # Used for tracking of cars
+tracker = Sort(max_age=200, min_hits=50, iou_threshold=0.5)   # Used for tracking of cars
 
 ###############################################################################################
 

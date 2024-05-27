@@ -13,6 +13,7 @@ import numpy as np
 
 
 # load model
+
 model = YOLO('forklift.pt')
 
 class_names = ['forklift' , 'person']
@@ -23,7 +24,7 @@ forklift_coordinates = {}
 tracker_forklift = Sort(max_age=200, min_hits=50, iou_threshold=0.5)
 
 # Tracking People
-tracker_person = Sort(max_age=200, min_hits=30, iou_threshold=0.3)
+tracker_person = Sort(max_age=200, min_hits=20, iou_threshold=0.3)
 
 def person_proximity_alert(img, box, cls: int, detections_person, current_class: str, class_names: List):
 
@@ -135,26 +136,30 @@ def main(address: str, video_mode: str):
                 cls = int(box.cls[0])
    
                 currentClass = class_names[cls]
-                print (cls)
-                # print (currentClass)
-                #print ("\n\n current_count = ",currentClass)
+                #print (cls)
+                print (currentClass)
+            
 
-                cvzone.cornerRect(img, (x1,y1,w,h))
+                #cvzone.cornerRect(img, (x1,y1,w,h))
                 # Call detections with args detections, Current Class, Interested Classes
 
-                #detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
+                detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
 
-                if (currentClass == "person"):
-                    detections_person = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
+                # detections_person = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
 
-                elif (currentClass == "forklift"):
-                    detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
+                # if (currentClass == "person"):
+                #     detections_person = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
+
+                # elif (currentClass == "forklift"):
+                #     detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
             
                 
         
         cv2.imshow("Image", img)    # Show images
         torch.mps.empty_cache()
         cv2.waitKey(1)
+
+    
 
 
 

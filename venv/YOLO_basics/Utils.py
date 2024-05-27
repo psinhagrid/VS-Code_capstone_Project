@@ -90,26 +90,3 @@ def decode_image_from_json(json_file):
 
 #################################################################################################################
 
-
-# from kafka.admin import KafkaAdminClient, NewTopic
-
-# # Kafka broker configuration
-# bootstrap_servers = 'localhost:9092'
-
-# # Create an instance of KafkaAdminClient with the bootstrap servers
-# admin_client = KafkaAdminClient(bootstrap_servers=bootstrap_servers)
-
-# # Define the topic name and number of partitions
-# topic_name = 'your_topic_name'
-# num_partitions = 3  # Adjust the number of partitions as needed
-# replication_factor = 1  # Adjust the replication factor as needed
-
-# # Create a NewTopic object with the topic name, number of partitions, and replication factor
-# new_topic = NewTopic(name=topic_name, num_partitions=num_partitions, replication_factor=replication_factor)
-
-# # Create the topic
-# admin_client.create_topics(new_topics=[new_topic])
-
-# # Close the admin client
-# admin_client.close()
-
