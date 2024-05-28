@@ -1,3 +1,6 @@
+#######################################################################################################
+
+
 from ultralyticsplus import YOLO, render_result
 import cv2
 import base64
@@ -12,6 +15,8 @@ from Utils import *
 import numpy as np
 
 
+#######################################################################################################
+
 # load model
 
 model = YOLO('forklift.pt')
@@ -20,11 +25,82 @@ class_names = ['forklift' , 'person']
 
 forklift_coordinates = {}
 
+# Frame Counter initialized
+frame_number = 0
+
+# Voilations dictionary initialized
+voilation_dict = {}
+
+# violators count:
+violators_count = 0 
+
+violator_ID = []
+
+
+#######################################################################################################
+
 # Tracking Forklifts
-tracker_forklift = Sort(max_age=200, min_hits=50, iou_threshold=0.5)
+tracker_forklift = Sort(max_age=200, min_hits=50, iou_threshold=0.3)
 
 # Tracking People
 tracker_person = Sort(max_age=200, min_hits=20, iou_threshold=0.3)
+
+#######################################################################################################
+
+def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_person):
+
+    global forklift_coordinates
+    all_distances = []
+
+    if not forklift_coordinates:
+        # If the dictionary is empty, do nothing and return
+        return
+    
+    for forklift, coordinates in forklift_coordinates.items():
+        x1_forklift, y1_forklift, x2_forklift, y2_forklift = coordinates
+
+        person_bottom_center_coordinates = ((x1_person + x2_person) // 2, y2_person)
+        forklift_bottom_center_coordinates = ((x1_forklift + x2_forklift) // 2, y2_forklift)
+
+        distance = math.sqrt((person_bottom_center_coordinates[0] - forklift_bottom_center_coordinates[0]) ** 2 + 
+                             (person_bottom_center_coordinates[1] - forklift_bottom_center_coordinates[1]) ** 2)
+
+        all_distances.append(distance)
+
+    all_distances.sort()
+    min_distance = all_distances[0]
+
+    
+    
+    # Check if the person is inside the forklift box
+    if (x1_person >= x1_forklift and y1_person >= y1_forklift and
+        x2_person <= x2_forklift and y2_person <= y2_forklift):
+        cvzone.putTextRect(img, 'Person Inside Forklift', (max(x1_person, 0), max(35, y1_person - 10)), 1, 1)
+        cv2.rectangle(img, (x1_person, y1_person), (x2_person, y2_person), (255, 0, 0), 1)  # Red color for inside
+ 
+
+    #elif min_distance     
+    elif min_distance >= 1000:
+        cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1,thickness=1,colorR=(0, 255, 0), colorT=(0,0,0) )
+        cv2.rectangle(img, (x1_person,y1_person), (x2_person,y2_person), (0,255,0), 1)     # Making rectangle
+        cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), (0, 255, 0), 3) 
+
+    else :
+        colour = (0,255,255)
+        # min_distance -= 200
+
+        green_value = int(max(0, min(255, (min_distance * 255) // 1000)))
+        new_colour = (colour[0], green_value, colour[2])
+
+        cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1, thickness=2, colorR=new_colour, colorT=(0, 0, 0))
+        cv2.rectangle(img, (x1_person, y1_person), (x2_person, y2_person), new_colour, 2)
+        cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), new_colour, 3) 
+
+
+
+
+
+
 
 def person_proximity_alert(img, box, cls: int, detections_person, current_class: str, class_names: List):
 
@@ -37,8 +113,7 @@ def person_proximity_alert(img, box, cls: int, detections_person, current_class:
 
         resultTracker_person = tracker_person.update(detections_person)
 
-        cvzone.putTextRect(img,f'{class_names[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 2, 2)
-        cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
+
 
 
         for results in resultTracker_person:
@@ -47,7 +122,13 @@ def person_proximity_alert(img, box, cls: int, detections_person, current_class:
             w, h = x2 - x1, y2 - y1
             x_center, y_center = x1+w//2, y1+h//2 
 
-            cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
+        
+        distance_calculator_and_colourer (img, x1, y1, x2, y2)
+        #cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
+
+        #cvzone.putTextRect(img,f'{class_names[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 2, 2)
+        #cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
+            
 
     return detections_person
 
@@ -57,20 +138,37 @@ def person_proximity_alert(img, box, cls: int, detections_person, current_class:
 
 
 def fork_lift_tracker(img, box, cls: int, detections_forklift, current_class: str, class_names: List):
+    """
+        Program to identify and tag fork lift in a program
+        Returns Detections
+    
+    """
 
-    global forklift_coordinates
+ 
 
     if current_class == "forklift":
 
+        # Making sure we use global variables. 
+        global forklift_coordinates
+        global current_count
+        global voilation_dict
+        global frame_number
+
+          
+        # Getting co-ordinates of the detections
         x1,y1,x2,y2,conf = bounding_box(box,img, show_box_for_all=True)
-        
+
+
+        # Updating the detections stack for ID usage 
         current_array = np.array([x1,y1,x2,y2,conf])        
         detections_forklift = np.vstack((detections_forklift, current_array))     # Giving labels
-
-        cvzone.putTextRect(img,f'{class_names[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 2, 2)
-        cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
-
         resultTracker_forklift = tracker_forklift.update(detections_forklift)
+
+
+        #cvzone.putTextRect(img,f'{class_names[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 2, 2)
+        #cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
+
+        
 
         for results in resultTracker_forklift:
             x1, y1, x2, y2, Id = results
@@ -78,15 +176,58 @@ def fork_lift_tracker(img, box, cls: int, detections_forklift, current_class: st
             w, h = x2 - x1, y2 - y1
             x_center, y_center = x1+w//2, y1+h//2 
 
-            cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
+            if (Id not in voilation_dict.keys() and Id != None):
+                voilation_dict[Id] = [frame_number, 1, conf]
+
+            else :
+
+                if (voilation_dict[Id][1] == -999):
+
+                    # Case if we have reached our confirmation hit number
+
+                    forklift_coordinates[Id] = [x1, y1, x2, y2]
+
+                    cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1, 1)
+                    cvzone.putTextRect(img,f'{class_names[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 1, 1)
+                    cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),1)     # Making rectangle
+                    #cv2.circle(img, ((x1+x2)//2, (y1+y2)//2), 10, (0, 255, 0) , thickness=-1)
+                    
 
 
-            if Id not in forklift_coordinates.keys() and Id is not None: 
-                
-                forklift_coordinates[Id] = [x1, y1, x2, y2, w, h, x_center, y_center]
+                elif (voilation_dict[Id][0] in range (frame_number-10, frame_number+10)):
+                    
+                    # Case if we get a hit
+
+                    if (voilation_dict[Id][1] == 50):        # confirmation hit number reached, assigns -999      
+                        voilation_dict[Id][1] = -999
+                        #print ("\n\n ENTERED FRAME ")
+                        #print (voilation_dict[1][1])
+
+                    else :
+                        voilation_dict[Id][0] = frame_number
+                        voilation_dict[Id][1] += 1          # Increment the count of hits
+                        voilation_dict[Id][2] = max(voilation_dict[Id][2], conf)        # Updating max confidence
+                        #print ("\n Frame Number", frame_number)
+                        #print (voilation_dict[1][1])
+
+                elif (voilation_dict[Id][0] not in range (frame_number-10, frame_number+10)):
+
+                    # Case is 
+                    voilation_dict[Id][0] = frame_number
+                    voilation_dict[Id][1] = 1
+                    voilation_dict[Id][2] = conf
+                    #print ("\n Frame Number", frame_number)
+                    
+
+                else :
+
+                    print ("UNKNOWN VIOLATION")
+                    quit()        
        
     
     return detections_forklift
+
+
 
 def main(address: str, video_mode: str):
 
@@ -105,11 +246,17 @@ def main(address: str, video_mode: str):
 
     while True:
 
+        global frame_number
+        frame_number += 1
+        print (frame_number)
+        
         success, img = cap.read()
 
         if not success:
             print("No more Frames to capture")
             break  # Exit the loop if reading fails
+        
+        img = cv2.resize(img, (1280, 720))
 
         if video_mode == "MP4":
             imgRegion = img
@@ -137,23 +284,23 @@ def main(address: str, video_mode: str):
    
                 currentClass = class_names[cls]
                 #print (cls)
-                print (currentClass)
+                #print (currentClass)
             
+                for key, value in forklift_coordinates.items():
+                    print(f"{key}: {value}")
 
-                #cvzone.cornerRect(img, (x1,y1,w,h))
-                # Call detections with args detections, Current Class, Interested Classes
-
-                detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
+                #detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
 
                 # detections_person = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
 
-                # if (currentClass == "person"):
-                #     detections_person = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
+                if (currentClass == "person"):
+                    detections_person = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
 
-                # elif (currentClass == "forklift"):
-                #     detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
+                elif (currentClass == "forklift"):
+                    detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
             
-                
+                # for key, value in voilation_dict.items():
+                #     print(f"{key}: {value}")
         
         cv2.imshow("Image", img)    # Show images
         torch.mps.empty_cache()
@@ -163,7 +310,7 @@ def main(address: str, video_mode: str):
 
 
 
-main(address='venv/YOLO_basics/forklift2.mp4', video_mode="MP4")
+main(address='venv/YOLO_basics/forklift3.mp4', video_mode="MP4")
 
 for key, value in forklift_coordinates.items():
     print(f"{key}: {value}")
