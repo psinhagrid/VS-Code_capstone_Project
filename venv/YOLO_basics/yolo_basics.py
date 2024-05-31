@@ -62,11 +62,6 @@ def make_description(location: Dict[str, int], confidence: int, employee_id: str
         "line3": f"The person who has the violation is present on the {location_of_person} half of the image",
         "line4": f"and is assigned an ID of {employee_id}."
     }
-        
-
-    
-
-    
 
     return description_dict
 
@@ -282,10 +277,10 @@ address2 = 'venv/YOLO_basics/helmet2.mp4'
 address3 = 'venv/YOLO_basics/helmet3.mp4'
 address4 = 'venv/YOLO_basics/helmet4.mp4'
 
-address = address1
+address = address4
 
 # Available modes "LIVE" and "MP4"
-video_mode = "LIVE"
+video_mode = "MP4"
 
 
 # Set if object counter is needed. Options are True and False

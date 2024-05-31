@@ -53,7 +53,8 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
     all_distances = []
 
     if not forklift_coordinates:
-        # If the dictionary is empty, do nothing and return
+        cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1,thickness=1,colorR=(0, 255, 0), colorT=(0,0,0) )
+        cv2.rectangle(img, (x1_person,y1_person), (x2_person,y2_person), (0,255,0), 1)     # Making rectangle
         return
     
     for forklift, coordinates in forklift_coordinates.items():
@@ -64,8 +65,14 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
 
         distance = math.sqrt((person_bottom_center_coordinates[0] - forklift_bottom_center_coordinates[0]) ** 2 + 
                              (person_bottom_center_coordinates[1] - forklift_bottom_center_coordinates[1]) ** 2)
+        
+        person_center_coordinates = ((x1_person + x2_person) // 2, (y1_person + y2_person)//2)
+        forklift_center_coordinates = ((x1_forklift + x2_forklift) // 2, (y1_forklift + y2_forklift)//2)
 
-        all_distances.append(distance)
+        distance_from_center = math.sqrt((person_center_coordinates[0] - forklift_center_coordinates[0]) ** 2 + 
+                             (person_center_coordinates[1] - forklift_center_coordinates[1]) ** 2)
+
+        all_distances.append(distance_from_center)
 
     all_distances.sort()
     min_distance = all_distances[0]
@@ -76,25 +83,35 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
     if (x1_person >= x1_forklift and y1_person >= y1_forklift and
         x2_person <= x2_forklift and y2_person <= y2_forklift):
         cvzone.putTextRect(img, 'Person Inside Forklift', (max(x1_person, 0), max(35, y1_person - 10)), 1, 1)
-        cv2.rectangle(img, (x1_person, y1_person), (x2_person, y2_person), (255, 0, 0), 1)  # Red color for inside
+        cv2.rectangle(img, (x1_person, y1_person), (x2_person, y2_person), (255, 0, 0), 1)  # Blue color for inside
  
 
-    #elif min_distance     
-    elif min_distance >= 1000:
+   
+    elif min_distance >= 500:
         cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1,thickness=1,colorR=(0, 255, 0), colorT=(0,0,0) )
         cv2.rectangle(img, (x1_person,y1_person), (x2_person,y2_person), (0,255,0), 1)     # Making rectangle
-        cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), (0, 255, 0), 3) 
+        cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), (0, 255, 0), 3)
+        cvzone.putTextRect(img, f"{min_distance}", ((person_center_coordinates[0]+forklift_center_coordinates[0])//2, (person_center_coordinates[1]+forklift_center_coordinates[1])//2 ), scale=1,thickness=1,colorR=(0, 255, 0), colorT=(0,0,0) ) 
 
+    elif min_distance <= 300:
+        cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1,thickness=1,colorR=(0, 0, 255), colorT=(0,0,0) )
+        cv2.rectangle(img, (x1_person,y1_person), (x2_person,y2_person), (0,0,255), 1)     # Making rectangle
+        cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), (0, 0, 255), 3)
+        cvzone.putTextRect(img, f"{min_distance}", ((person_center_coordinates[0]+forklift_center_coordinates[0])//2, (person_center_coordinates[1]+forklift_center_coordinates[1])//2 ), scale=1,thickness=1,colorR=(0, 0, 255), colorT=(0,0,0) ) 
+       
     else :
         colour = (0,255,255)
-        # min_distance -= 200
+        min_distance_new = min_distance - 300
 
-        green_value = int(max(0, min(255, (min_distance * 255) // 1000)))
+        green_value = int(max(0, min(255, (min_distance_new * 255) // 200)))
         new_colour = (colour[0], green_value, colour[2])
 
         cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1, thickness=2, colorR=new_colour, colorT=(0, 0, 0))
         cv2.rectangle(img, (x1_person, y1_person), (x2_person, y2_person), new_colour, 2)
         cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), new_colour, 3) 
+        cvzone.putTextRect(img, f"{min_distance}", ((person_center_coordinates[0]+forklift_center_coordinates[0])//2, (person_center_coordinates[1]+forklift_center_coordinates[1])//2 ), scale=1,thickness=1,colorR=new_colour, colorT=(0,0,0) ) 
+
+
 
 
 
@@ -105,30 +122,35 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
 def person_proximity_alert(img, box, cls: int, detections_person, current_class: str, class_names: List):
 
     if current_class == "person":
-
+        
+    
         x1,y1,x2,y2,conf = bounding_box(box,img, show_box_for_all=True)
 
-        current_array = np.array([x1,y1,x2,y2,conf])        
-        detections_person = np.vstack((detections_person, current_array))     # Giving labels
+        if conf >= 0.40:
+            current_array = np.array([x1,y1,x2,y2,conf])        
+            detections_person = np.vstack((detections_person, current_array))     # Giving labels
 
-        resultTracker_person = tracker_person.update(detections_person)
+            resultTracker_person = tracker_person.update(detections_person)
 
 
 
 
-        for results in resultTracker_person:
-            x1, y1, x2, y2, Id = results
-            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            w, h = x2 - x1, y2 - y1
-            x_center, y_center = x1+w//2, y1+h//2 
+            for results in resultTracker_person:
+                x1, y1, x2, y2, Id = results
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                w, h = x2 - x1, y2 - y1
+                x_center, y_center = x1+w//2, y1+h//2 
 
-        
-        distance_calculator_and_colourer (img, x1, y1, x2, y2)
-        #cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
 
-        #cvzone.putTextRect(img,f'{class_names[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 2, 2)
-        #cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
-            
+            # cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1, thickness=2, colorR=new_colour, colorT=(0, 0, 0))
+            # cv2.rectangle(img, (x1_person, y1_person), (x2_person, y2_person), new_colour, 2)
+
+            distance_calculator_and_colourer (img, x1, y1, x2, y2)
+            #cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
+
+            # cvzone.putTextRect(img,f'{class_names[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 2, 2)
+            # cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
+                
 
     return detections_person
 
@@ -289,7 +311,7 @@ def main(address: str, video_mode: str):
                 for key, value in forklift_coordinates.items():
                     print(f"{key}: {value}")
 
-                #detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
+                # detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
 
                 # detections_person = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
 
