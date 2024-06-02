@@ -82,11 +82,11 @@ def decode_image_from_json(json_file):
     return img
 
 
-# json_file = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/output_json/output_1.json'
-# image = decode_image_from_json(json_file)
-# cv2.imshow("Decoded Image", image)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+json_file = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/output_json/output_1.json'
+image = decode_image_from_json(json_file)
+cv2.imshow("Decoded Image", image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
 #################################################################################################################
 

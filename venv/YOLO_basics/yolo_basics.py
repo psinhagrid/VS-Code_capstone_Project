@@ -277,7 +277,7 @@ address2 = 'venv/YOLO_basics/helmet2.mp4'
 address3 = 'venv/YOLO_basics/helmet3.mp4'
 address4 = 'venv/YOLO_basics/helmet4.mp4'
 
-address = address4
+address = address1
 
 # Available modes "LIVE" and "MP4"
 video_mode = "MP4"
