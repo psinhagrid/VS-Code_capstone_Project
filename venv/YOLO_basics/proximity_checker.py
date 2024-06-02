@@ -332,6 +332,8 @@ def main(address: str, video_mode: str):
 
 
 
+
+
 main(address='venv/YOLO_basics/forklift3.mp4', video_mode="MP4")
 
 for key, value in forklift_coordinates.items():
