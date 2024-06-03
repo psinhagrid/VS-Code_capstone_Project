@@ -9,14 +9,10 @@ from sort import *
 from API_call import *
 from Utils import *
 
-#class_names only set to ['Persons']
+
 
 ###############################################################################################
 
-
-## Initialize the model 
-
-#  model = YOLO('venv/YOLO-weights/yolov8l.pt')
 
 
 model = YOLO('fine_tuned_weights.pt')
@@ -42,10 +38,6 @@ violator_ID = []
 ###############################################################################################
 
 """       UTILS         """
-
-
-
-
 
 def raise_flag(img, event_type: str, timestamp: str, frame: str , 
                   location: Dict[str, int], confidence: int, employee_id: str, violation_type: str, violation_count:int, severity_level: str, 

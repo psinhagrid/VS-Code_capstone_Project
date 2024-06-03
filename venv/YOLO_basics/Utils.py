@@ -6,6 +6,8 @@ import numpy as np
 import json
 from kafka import KafkaProducer
 import math
+import cvzone
+
 
 
 def bounding_box(box,img, show_box_for_all):

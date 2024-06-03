@@ -48,6 +48,14 @@ tracker_person = Sort(max_age=200, min_hits=20, iou_threshold=0.3)
 #######################################################################################################
 
 def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_person):
+    """
+
+        This funcion will take the coorinates of person and colour the boxes according to proximity of the person with forklift.
+        The box will be red in colour if the person is too close to forklift, else yellow if in medium range. Finally green if safe.
+        
+        The distance percieved by the model is dependent on the camera angle, which can be changed for a perticular angle to make the readings more accurate.
+
+    """
 
     global forklift_coordinates
     all_distances = []
@@ -120,6 +128,12 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
 
 
 def person_proximity_alert(img, box, cls: int, detections_person, current_class: str, class_names: List):
+    """
+    
+        Checks if the person detection confidence is more than 40%, also updates co-ordinates and tracker to track the person.
+        Calls the function to colour the box according to the distance from the forklift.
+
+    """
 
     if current_class == "person":
         
@@ -160,6 +174,7 @@ def person_proximity_alert(img, box, cls: int, detections_person, current_class:
 
 
 def fork_lift_tracker(img, box, cls: int, detections_forklift, current_class: str, class_names: List):
+
     """
         Program to identify and tag fork lift in a program
         Returns Detections
@@ -334,7 +349,7 @@ def main(address: str, video_mode: str):
 
 
 
-main(address='venv/YOLO_basics/forklift3.mp4', video_mode="MP4")
+main(address='venv/YOLO_basics/forklift2.mp4', video_mode="MP4")
 
 for key, value in forklift_coordinates.items():
     print(f"{key}: {value}")
