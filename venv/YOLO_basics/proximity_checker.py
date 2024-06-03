@@ -187,7 +187,6 @@ def fork_lift_tracker(img, box, cls: int, detections_forklift, current_class: st
 
         # Making sure we use global variables. 
         global forklift_coordinates
-        global current_count
         global voilation_dict
         global frame_number
 
