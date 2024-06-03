@@ -81,12 +81,80 @@ def decode_image_from_json(json_file):
     
     return img
 
+def make_description(location, confidence: int, employee_id: str, violation_type: str):
 
-json_file = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/output_json/output_1.json'
-image = decode_image_from_json(json_file)
-cv2.imshow("Decoded Image", image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    """
+
+        Makes Description for the occuring fault, gives fault type, confidence, person location and employee ID in image.
+        Returns a dictionary with the following informations.
+
+    """
+
+    if (location["x1"] < 1280/2):
+        location_of_person = "left"
+    else : 
+        location_of_person = "right"
+
+    
+    confidence_percent = round(confidence * 100, 2)
+
+    description_dict = {
+
+        "line1": "There is a violation of type NO-Safety Vest identified,",
+        "line2": f"We say this with {confidence_percent}% confidence.",
+        "line3": f"The person who has the violation is present on the {location_of_person} half of the image",
+        "line4": f"and is assigned an ID of {employee_id}."
+    }
+
+    return description_dict
+
+
+def generate_json( description: str, event_type: str, timestamp: str, frame: str , 
+                  location: dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
+                  metadata: dict[str, str], image_encoded, output_file: str,):
+    """
+    Generate a JSON file with the provided parameters and save it to the specified output file.
+    
+    Parameters:
+        image_encoded(str): This is the frame image encoded in 64 bit format. 
+        event_type (str): The type of event (e.g., "PPE Violation").
+        timestamp (str): The timestamp of the event in ISO 8601 format.
+        frame (str): The base64 encoded frame data.
+        location (Dict[str, int]): A dictionary containing the coordinates of the location
+            with keys "x1", "y1", "x2", and "y2".
+        employee_id (str): The ID of the employee associated with the event.
+        violation_type (str): The type of violation (e.g., "No Helmet").
+        severity_level (str): The severity level of the violation (e.g., "high").
+        metadata (Dict[str, str]): Additional metadata associated with the event,
+            such as camera ID, location, and environmental conditions.
+        output_file (str): The path to the output JSON file.
+    """
+    data = {
+        "description": description,
+        
+        "event_type": event_type,
+        "timestamp": timestamp,
+        "frame": frame,
+        "location": location,
+        "confidence": confidence,
+        "employee_id": employee_id,
+        "violation_type": violation_type,
+        "severity_level": severity_level,
+        "metadata": metadata,
+        "image_encoded": image_encoded,
+
+    }
+    
+    with open(output_file, "w") as f:
+        json.dump(data, f, indent=4)
+
+
+
+# json_file = '/Users/psinha/Documents/capstone_project/venv/YOLO_basics/output_json/output_1.json'
+# image = decode_image_from_json(json_file)
+# cv2.imshow("Decoded Image", image)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
 
 #################################################################################################################
 

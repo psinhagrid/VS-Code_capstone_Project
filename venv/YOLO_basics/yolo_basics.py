@@ -45,29 +45,10 @@ violator_ID = []
 
 
 
-def make_description(location: Dict[str, int], confidence: int, employee_id: str, violation_type: str):
-
-    if (location["x1"] < 1280/2):
-        location_of_person = "left"
-    else : 
-        location_of_person = "right"
-
-    
-    confidence_percent = round(confidence * 100, 2)
-
-    description_dict = {
-
-        "line1": "There is a violation of type NO-Safety Vest identified,",
-        "line2": f"We say this with {confidence_percent}% confidence.",
-        "line3": f"The person who has the violation is present on the {location_of_person} half of the image",
-        "line4": f"and is assigned an ID of {employee_id}."
-    }
-
-    return description_dict
 
 
 def raise_flag(img, event_type: str, timestamp: str, frame: str , 
-                  location: Dict[str, int], confidence: int, employee_id: str, violation_type: str, severity_level: str, 
+                  location: Dict[str, int], confidence: int, employee_id: str, violation_type: str, violation_count:int, severity_level: str, 
                   metadata: Dict[str, str], output_file: str):
     
     print ("Flag_raised")
@@ -95,32 +76,6 @@ def raise_flag(img, event_type: str, timestamp: str, frame: str ,
 
 
 
-
-
-
-def bounding_box(box,img, show_box_for_all):
-
-    """    
-        Function to calculate confidence and make box for all recognized object 
-    
-        Gives out co-ordinates of boxes, Put show_box_for_all == True to make a box for all detections
-    
-    """
-
-    # Bounding Box
-    x1,y1,x2,y2 = box.xyxy[0]  # Getting coorinates of bounding box
-    x1,y1,x2,y2 = int(x1), int(y1), int(x2), int(y2)    # Making integer values to make boxes in next step
-    w, h = x2-x1, y2-y1     # Calculating width and length 
-
-
-    if show_box_for_all == True:
-        #cvzone.cornerRect(img, (x1,y1,w,h))
-        pass
-
-
-    # Confidence Level Calculation
-    conf = math.ceil((box.conf[0]*100))/100     # Rounding off the confidence levels
-    return x1,y1,x2,y2,conf
 
 
 def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, currentClass: str, conf: int):
@@ -162,6 +117,7 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
                     confidence = voilation_dict[Id][2],
                     employee_id=Id,
                     violation_type=currentClass,
+                    violation_count = violators_count,
                     severity_level="high",
                     metadata={"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},
                     output_file = f"{output_file_base}_{violators_count+1}.json"
@@ -212,8 +168,6 @@ def object_ID(img, box, cls: int, result_tracker, current_Class: str, class_name
         y_center = y1+h//2
 
 
-
-        
         anomaly_detector(img, box, x1, y1, x2, y2, Id, current_Class, conf)
 
             
