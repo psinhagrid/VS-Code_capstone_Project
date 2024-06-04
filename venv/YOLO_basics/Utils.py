@@ -7,6 +7,7 @@ import json
 from kafka import KafkaProducer
 import math
 import cvzone
+from typing import List, Dict
 
 
 
@@ -112,8 +113,8 @@ def make_description(location, confidence: int, employee_id: str, violation_type
 
 
 def generate_json( description: str, event_type: str, timestamp: str, frame: str , 
-                  location: dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
-                  metadata: dict[str, str], image_encoded, output_file: str,):
+                  location: Dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
+                  metadata: Dict[str, str], image_encoded, output_file: str,):
     """
     Generate a JSON file with the provided parameters and save it to the specified output file.
     
