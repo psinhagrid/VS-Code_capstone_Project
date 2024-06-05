@@ -25,6 +25,10 @@ className = [
 
 
 
+safety_vest_people_count = 0
+no_safety_vest_people_count = 0
+violation_score = 0
+
 # Frame Counter initialized
 frame_number = 0
 
@@ -179,12 +183,19 @@ def class_to_track(img, box, cls: int, detections, current_class: str, class_nam
         Return Type : Detections, Center x coordinate, Center y coordinate
     
     """
+    if (current_class == 'Safety Vest'):
+        
+        global safety_vest_people_count
+        safety_vest_people_count += 1
+
+    if (current_class == 'NO-Safety Vest'):
+        global no_safety_vest_people_count
+        no_safety_vest_people_count += 1
 
 
     if (class_names == None or class_names == [] or current_class in class_names):
         
-        global frame_number 
-        frame_number += 1
+
 
         x1,y1,x2,y2,conf = bounding_box(box,img, show_box_for_all=True)
         
@@ -219,7 +230,7 @@ def class_to_track(img, box, cls: int, detections, current_class: str, class_nam
 ##    cv2.waitKey(0) VS cv2.waitKey(1) difference is 1 will continue execution after 1ms delay and 0 will wait till key given
 
 address1 = 'venv/YOLO_basics/helmet.mp4'
-address2 = 'venv/YOLO_basics/helmet2.mp4'
+# address2 = 'venv/YOLO_basics/helmet2.mp4'
 address3 = 'venv/YOLO_basics/helmet3.mp4'
 address4 = 'venv/YOLO_basics/helmet4.mp4'
 
@@ -236,7 +247,7 @@ object_counter_requirement = True
 # Set required class list
 #class_names = ['Hardhat', 'Mask', 'NO_Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', "Safety Cone",'Safety Vest', 'machinery', 'vehicle']
 
-class_names = [ 'NO-Safety Vest' ]
+class_names = [ 'NO-Safety Vest','NO_Hardhat' ]
 
 
 
@@ -288,6 +299,9 @@ def main(address: str, video_mode: str, object_counter_requirement: bool, class_
 
         detections = np.empty((0,5))
 
+        global frame_number 
+        frame_number += 1
+
 
         for r in result:
 
@@ -308,8 +322,11 @@ def main(address: str, video_mode: str, object_counter_requirement: bool, class_
                 detections = class_to_track(img, box, cls, detections, currentClass, class_names )
                 #call the ingestion api..
                 
-                
 
+        print (no_safety_vest_people_count) 
+        print (safety_vest_people_count)           
+        print ("\nsafety_score")
+        print (((safety_vest_people_count/(safety_vest_people_count+no_safety_vest_people_count)))*100)
 
         cv2.imshow("Image", img)    # Show images
         torch.mps.empty_cache()
