@@ -95,13 +95,13 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
  
 
    
-    elif min_distance >= 500:
+    elif min_distance >= 300:
         cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1,thickness=1,colorR=(0, 255, 0), colorT=(0,0,0) )
         cv2.rectangle(img, (x1_person,y1_person), (x2_person,y2_person), (0,255,0), 1)     # Making rectangle
         cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), (0, 255, 0), 3)
         cvzone.putTextRect(img, f"{min_distance:.2f}", ((person_center_coordinates[0]+forklift_center_coordinates[0])//2, (person_center_coordinates[1]+forklift_center_coordinates[1])//2 ), scale=1,thickness=1,colorR=(0, 255, 0), colorT=(0,0,0) ) 
 
-    elif min_distance <= 300:
+    elif min_distance <= 100:
         cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1,thickness=1,colorR=(0, 0, 255), colorT=(0,0,0) )
         cv2.rectangle(img, (x1_person,y1_person), (x2_person,y2_person), (0,0,255), 1)     # Making rectangle
         cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), (0, 0, 255), 3)
@@ -109,7 +109,7 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
        
     else :
         colour = (0,255,255)
-        min_distance_new = min_distance - 300
+        min_distance_new = min_distance - 100
 
         green_value = int(max(0, min(255, (min_distance_new * 255) // 200)))
         new_colour = (colour[0], green_value, colour[2])
@@ -348,7 +348,7 @@ def main(address: str, video_mode: str):
 
 
 
-main(address='venv/YOLO_basics/forklift5.mp4', video_mode="MP4")
+main(address='venv/YOLO_basics/forklift_final.mp4', video_mode="MP4")
 
 for key, value in forklift_coordinates.items():
     print(f"{key}: {value}")
