@@ -72,6 +72,8 @@ def raise_flag(category: str, img, event_type: str, timestamp: str, frame: str ,
     generate_json(category, description,  event_type, timestamp, frame, 
                   location, confidence, employee_id, violation_type, severity_level, 
                   metadata, output_file)
+    
+
 
 
 
@@ -91,13 +93,14 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
         print (violators_count) 
         if (Id not in voilation_dict.keys() and Id != None):
             voilation_dict[Id] = [frame_number, 1, conf]
-            generate_json("Non-Alert", "",  "PPE Violation", "2024-07-01T14:23:45Z", frame_number, {"x1": x1, "y1": y1, "x2": x2, "y2": y2}, voilation_dict[Id][2], Id, currentClass, "high", {"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},  f"{output_file_base}_{frame_number}.json")
+            generate_json("Non-Alert", " ",  "PPE Violation", "2024-07-01T14:23:45Z", frame_number, {"x1": x1, "y1": y1, "x2": x2, "y2": y2}, voilation_dict[Id][2], Id, currentClass, "high", {"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},  f"{output_file_base}_{frame_number}.json")
 
         else :
 
             if (voilation_dict[Id][1] == -999):
+                generate_json("Non-Alert", " ",  "PPE Violation", "2024-07-01T14:23:45Z", frame_number, {"x1": x1, "y1": y1, "x2": x2, "y2": y2}, voilation_dict[Id][2], Id, currentClass, "high", {"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},  f"{output_file_base}_{frame_number}.json")
                 #print ("\n\n PASSED")
-                pass
+                
 
 
             elif (voilation_dict[Id][0] in range (frame_number-10, frame_number+10)):
@@ -290,7 +293,6 @@ def main(address: str, video_mode: str, object_counter_requirement: bool, class_
     result = model(img, device="mps", stream=True)  # Use mps and stream feature
     detections = np.empty((0, 5))
 
-    frame_number += 1
 
     for r in result:
         boxes = r.boxes
@@ -314,7 +316,7 @@ def main(address: str, video_mode: str, object_counter_requirement: bool, class_
     cv2.waitKey(1)
 
     # Save the image with the detection box to a local folder
-    output_image_path = f"venv/YOLO_basics/output_images/frame_{frame_number}_violation_{violators_count}.png"
+    output_image_path = f"venv/YOLO_basics/output_images/frame_{frame_number}.png"
     os.makedirs(os.path.dirname(output_image_path), exist_ok=True)  # Ensure the directory exists
     cv2.imwrite(output_image_path, img)  # Save the image
 
