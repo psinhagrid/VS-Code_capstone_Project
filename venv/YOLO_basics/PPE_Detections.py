@@ -300,6 +300,11 @@ def main(address: str, video_mode: str, object_counter_requirement: bool, class_
     torch.mps.empty_cache()
     cv2.waitKey(1)
 
+    # Save the image with the detection box to a local folder
+    output_image_path = f"venv/YOLO_basics/output_images/frame_{frame_number}_violation_{violators_count}.png"
+    os.makedirs(os.path.dirname(output_image_path), exist_ok=True)  # Ensure the directory exists
+    cv2.imwrite(output_image_path, img)  # Save the image
+
     print(violators_count)
     print(violator_ID)
 
