@@ -221,6 +221,7 @@ def class_to_track(img, box, cls: int, detections, current_class: str, class_nam
         resultTracker = tracker.update(detections)
 
         print ("Frame Number : ", frame_number)
+        #print (((safety_vest_people_count/(safety_vest_people_count+no_safety_vest_people_count)))*100)
 
         output_json_path = object_ID(img, box, cls, resultTracker, current_class, class_names ,conf)
 
