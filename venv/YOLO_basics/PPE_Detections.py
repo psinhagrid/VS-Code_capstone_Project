@@ -240,6 +240,7 @@ def class_to_track(img, box, cls: int, detections, current_class: str, class_nam
 
 
 
+
 ###############################################################################################
 
 """   Program to capture video from the device.     """
