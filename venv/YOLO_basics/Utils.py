@@ -112,9 +112,9 @@ def make_description(location, confidence: int, employee_id: str, violation_type
     return description_dict
 
 
-def generate_json( description: str, event_type: str, timestamp: str, frame: str , 
+def generate_json( category: str,description: str, event_type: str, timestamp: str, frame: str , 
                   location: Dict[str, int], confidence: str, employee_id: str, violation_type: str, severity_level: str, 
-                  metadata: Dict[str, str], image_encoded, output_file: str,):
+                  metadata: Dict[str, str],  output_file: str):
     """
     Generate a JSON file with the provided parameters and save it to the specified output file.
     
@@ -133,8 +133,8 @@ def generate_json( description: str, event_type: str, timestamp: str, frame: str
         output_file (str): The path to the output JSON file.
     """
     data = {
+        "category": category,
         "description": description,
-        
         "event_type": event_type,
         "timestamp": timestamp,
         "frame": frame,
@@ -144,7 +144,7 @@ def generate_json( description: str, event_type: str, timestamp: str, frame: str
         "violation_type": violation_type,
         "severity_level": severity_level,
         "metadata": metadata,
-        "image_encoded": image_encoded,
+
 
     }
     

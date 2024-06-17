@@ -38,12 +38,15 @@ voilation_dict = {}
 # violators count:
 violators_count = 0 
 
+# Global file path base 
+output_file_base = "venv/YOLO_basics/output_json/output"
+
 violator_ID = []
 ###############################################################################################
 
 """       UTILS         """
 
-def raise_flag(img, event_type: str, timestamp: str, frame: str , 
+def raise_flag(category: str, img, event_type: str, timestamp: str, frame: str , 
                   location: Dict[str, int], confidence: int, employee_id: str, violation_type: str, violation_count:int, severity_level: str, 
                   metadata: Dict[str, str], output_file: str):
     
@@ -64,11 +67,11 @@ def raise_flag(img, event_type: str, timestamp: str, frame: str ,
     img_copy = cv2.rectangle(img, (x1,y1), (x2,y2), (0,0,255),5)     # Making rectangle
 
 
-    image_encoded = compress_image_to_base64(img_copy, quality=20)
+    #image_encoded = compress_image_to_base64(img_copy, quality=20)
     description = make_description(location, confidence, employee_id, violation_type)
-    generate_json(description,  event_type, timestamp, frame, 
+    generate_json(category, description,  event_type, timestamp, frame, 
                   location, confidence, employee_id, violation_type, severity_level, 
-                  metadata, image_encoded, output_file)
+                  metadata, output_file)
 
 
 
@@ -79,8 +82,8 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
     global current_count
     global voilation_dict
     global frame_number
-
-    output_file_base = "venv/YOLO_basics/output_json/output"
+    global output_file_base
+    
 
     if (currentClass in ('NO-Safety Vest', 'NO_Hardhat', 'NO-Mask')):
 
@@ -88,6 +91,7 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
         print (violators_count) 
         if (Id not in voilation_dict.keys() and Id != None):
             voilation_dict[Id] = [frame_number, 1, conf]
+            generate_json("Non-Alert", "",  "PPE Violation", "2024-07-01T14:23:45Z", frame_number, {"x1": x1, "y1": y1, "x2": x2, "y2": y2}, voilation_dict[Id][2], Id, currentClass, "high", {"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},  f"{output_file_base}_{frame_number}.json")
 
         else :
 
@@ -105,6 +109,7 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
                     #print ("\n\n ENTERED FRAME ")
                     #print (voilation_dict[1][1])
                     raise_flag(
+                    category = "Alert",
                     img = img,
                     event_type="PPE Violation",
                     timestamp="2024-07-01T14:23:45Z", 
@@ -116,14 +121,16 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
                     violation_count = violators_count,
                     severity_level="high",
                     metadata={"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},
-                    output_file = f"{output_file_base}_{violators_count+1}.json"
-                
+                    output_file = f"{output_file_base}_{frame_number}.json"
                     )
+   
 
                 else :
                     voilation_dict[Id][0] = frame_number
                     voilation_dict[Id][1] += 1
                     voilation_dict[Id][2] = max(voilation_dict[Id][2], conf)
+                    generate_json("Non-Alert", "",  "PPE Violation", "2024-07-01T14:23:45Z", frame_number, {"x1": x1, "y1": y1, "x2": x2, "y2": y2}, voilation_dict[Id][2], Id, currentClass, "high", {"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},  f"{output_file_base}_{frame_number}.json")
+
                     #print ("\n Frame Number", frame_number)
                     #print (voilation_dict[1][1])
 
@@ -132,6 +139,8 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
                 voilation_dict[Id][0] = frame_number
                 voilation_dict[Id][1] = 1
                 voilation_dict[Id][2] = conf
+                generate_json("Non-Alert", "",  "PPE Violation", "2024-07-01T14:23:45Z", frame_number, {"x1": x1, "y1": y1, "x2": x2, "y2": y2}, voilation_dict[Id][2], Id, currentClass, "high", {"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},  f"{output_file_base}_{frame_number}.json")
+                
                 #print ("\n Frame Number", frame_number)
                 
 
@@ -140,7 +149,7 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
                 print ("UNKNOWN VIOLATION")
                 quit()
                 
-                
+        return f"{output_file_base}_{frame_number}.json" 
 
 
 
@@ -164,7 +173,8 @@ def object_ID(img, box, cls: int, result_tracker, current_Class: str, class_name
         y_center = y1+h//2
 
 
-        anomaly_detector(img, box, x1, y1, x2, y2, Id, current_Class, conf)
+        output_json_path = anomaly_detector(img, box, x1, y1, x2, y2, Id, current_Class, conf)
+        return output_json_path
 
             
 
@@ -209,11 +219,14 @@ def class_to_track(img, box, cls: int, detections, current_class: str, class_nam
 
         print ("Frame Number : ", frame_number)
 
-        object_ID(img, box, cls, resultTracker, current_class, class_names ,conf)
+        output_json_path = object_ID(img, box, cls, resultTracker, current_class, class_names ,conf)
+
+    else :
+        generate_json("Non-Alert", " ",  "PPE Violation", "2024-07-01T14:23:45Z", frame_number, {"x1": 0, "y1": 0, "x2": 0, "y2": 0}, None, None, None, "high", {"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},  f"{output_file_base}_{violators_count}.json")
+        output_json_path = f"{output_file_base}_{frame_number}.json"
 
 
-
-    return detections
+    return detections,output_json_path
 
 
 
@@ -231,8 +244,8 @@ def class_to_track(img, box, cls: int, detections, current_class: str, class_nam
 
 address1 = 'venv/YOLO_basics/helmet.mp4'
 # address2 = 'venv/YOLO_basics/helmet2.mp4'
-address3 = 'venv/YOLO_basics/helmet3.mp4'
-address4 = 'venv/YOLO_basics/helmet4.mp4'
+# address3 = 'venv/YOLO_basics/helmet3.mp4'
+# address4 = 'venv/YOLO_basics/helmet4.mp4'
 
 address = address1
 
@@ -289,7 +302,7 @@ def main(address: str, video_mode: str, object_counter_requirement: bool, class_
             currentClass = class_names[cls]
 
             # Call detections with args detections, Current Class, Interested Classes
-            detections = class_to_track(img, box, cls, detections, currentClass, class_names)
+            detections,output_json_path = class_to_track(img, box, cls, detections, currentClass, class_names)
 
     print(no_safety_vest_people_count)
     print(safety_vest_people_count)
@@ -307,6 +320,8 @@ def main(address: str, video_mode: str, object_counter_requirement: bool, class_
 
     print(violators_count)
     print(violator_ID)
+
+    return output_image_path, output_json_path
 
 
 
@@ -330,7 +345,7 @@ def process_video(video_path: str, object_counter_requirement: bool, class_names
         cv2.imwrite(temp_frame_path, frame)
 
         # Call the main function with the temporary PNG frame
-        main(temp_frame_path, "PNG", object_counter_requirement, class_names)
+        print (main(temp_frame_path, "PNG", object_counter_requirement, class_names))
 
         frame_number += 1
 
