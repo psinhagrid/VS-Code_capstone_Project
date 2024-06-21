@@ -247,6 +247,8 @@ def fork_lift_tracker(img, box, cls: int, detections_forklift, current_class: st
             w, h = x2 - x1, y2 - y1
             x_center, y_center = x1+w//2, y1+h//2 
 
+  
+
             if (Id not in voilation_dict.keys() and Id != None):
                 voilation_dict[Id] = [frame_number, 1, conf]
 
@@ -269,7 +271,7 @@ def fork_lift_tracker(img, box, cls: int, detections_forklift, current_class: st
                     
                     # Case if we get a hit
 
-                    if (voilation_dict[Id][1] == 30):        # confirmation hit number reached, assigns -999      
+                    if (voilation_dict[Id][1] == 2):        # confirmation hit number reached, assigns -999      
                         voilation_dict[Id][1] = -999
                         #print ("\n\n ENTERED FRAME ")
                         #print (voilation_dict[1][1])
