@@ -126,10 +126,6 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
                     metadata={"camera_id": "CAM01", "location": "Warehouse Section A", "environmental_conditions": "Normal"},
                     output_file = f"{output_file_base}_{frame_number}.json"
                     )
-
-                    quit()
-
-
    
 
                 else :
@@ -256,7 +252,7 @@ address1 = 'venv/YOLO_basics/helmet.mp4'
 # address3 = 'venv/YOLO_basics/helmet3.mp4'
 address4 = 'venv/YOLO_basics/helmet4.mp4'
 
-address = address1
+address = address4
 
 # Available modes "LIVE" and "MP4"
 video_mode = "MP4"

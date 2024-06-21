@@ -25,6 +25,10 @@ class_names = ['forklift' , 'person']
 
 forklift_coordinates = {}
 
+
+# Global file path base 
+output_file_base = "venv/YOLO_basics/output_json/output"
+
 # Frame Counter initialized
 frame_number = 0
 
@@ -35,6 +39,9 @@ voilation_dict = {}
 violators_count = 0 
 
 violator_ID = []
+
+average_distance = []
+tags = [None, None, None]
 
 
 #######################################################################################################
@@ -47,6 +54,17 @@ tracker_person = Sort(max_age=200, min_hits=20, iou_threshold=0.3)
 
 #######################################################################################################
 
+def safety_condition(label_to_genrate):
+    if label_to_genrate == None:
+        return "None"
+    if label_to_genrate < 200:
+        return "BAD"
+    elif label_to_genrate >= 200 and label_to_genrate < 500:
+        return "GOOD"
+    else :
+        return "EXCELLENT"
+    
+
 def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_person):
     """
 
@@ -56,7 +74,8 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
         The distance percieved by the model is dependent on the camera angle, which can be changed for a perticular angle to make the readings more accurate.
 
     """
-
+    global tags
+    global average_distance
     global forklift_coordinates
     all_distances = []
 
@@ -74,6 +93,8 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
         distance = math.sqrt((person_bottom_center_coordinates[0] - forklift_bottom_center_coordinates[0]) ** 2 + 
                              (person_bottom_center_coordinates[1] - forklift_bottom_center_coordinates[1]) ** 2)
         
+        average_distance.append(distance)
+
         person_center_coordinates = ((x1_person + x2_person) // 2, (y1_person + y2_person)//2)
         forklift_center_coordinates = ((x1_forklift + x2_forklift) // 2, (y1_forklift + y2_forklift)//2)
 
@@ -84,6 +105,11 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
 
     all_distances.sort()
     min_distance = all_distances[0]
+    tags[0] = min_distance
+    tags[1] = sum(average_distance) / len(average_distance)
+    tags[2] = safety_condition(tags[1])
+
+
 
     
     
@@ -120,6 +146,11 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
         cvzone.putTextRect(img, f"{min_distance:.2f}", ((person_center_coordinates[0]+forklift_center_coordinates[0])//2, (person_center_coordinates[1]+forklift_center_coordinates[1])//2 ), scale=1,thickness=1,colorR=new_colour, colorT=(0,0,0) ) 
 
 
+    output_image_path = f"venv/YOLO_basics/output_images/frame_{frame_number}.png"
+    os.makedirs(os.path.dirname(output_image_path), exist_ok=True)  # Ensure the directory exists
+    cv2.imwrite(output_image_path, img)  # Save the image
+
+    return output_image_path
 
 
 
@@ -134,7 +165,7 @@ def person_proximity_alert(img, box, cls: int, detections_person, current_class:
         Calls the function to colour the box according to the distance from the forklift.
 
     """
-
+    output_image_path = None
     if current_class == "person":
         
     
@@ -159,14 +190,18 @@ def person_proximity_alert(img, box, cls: int, detections_person, current_class:
             # cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1, thickness=2, colorR=new_colour, colorT=(0, 0, 0))
             # cv2.rectangle(img, (x1_person, y1_person), (x2_person, y2_person), new_colour, 2)
 
-            distance_calculator_and_colourer (img, x1, y1, x2, y2)
+            output_image_path = distance_calculator_and_colourer (img, x1, y1, x2, y2)
             #cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
 
             # cvzone.putTextRect(img,f'{class_names[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 2, 2)
             # cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
-                
 
-    return detections_person
+    if output_image_path == None:
+        output_image_path = f"venv/YOLO_basics/output_images/frame_{frame_number}.png"
+        os.makedirs(os.path.dirname(output_image_path), exist_ok=True)  # Ensure the directory exists
+        cv2.imwrite(output_image_path, img)  # Save the image  
+
+    return detections_person, output_image_path
 
 
 
@@ -234,7 +269,7 @@ def fork_lift_tracker(img, box, cls: int, detections_forklift, current_class: st
                     
                     # Case if we get a hit
 
-                    if (voilation_dict[Id][1] == 50):        # confirmation hit number reached, assigns -999      
+                    if (voilation_dict[Id][1] == 30):        # confirmation hit number reached, assigns -999      
                         voilation_dict[Id][1] = -999
                         #print ("\n\n ENTERED FRAME ")
                         #print (voilation_dict[1][1])
@@ -264,20 +299,66 @@ def fork_lift_tracker(img, box, cls: int, detections_forklift, current_class: st
     return detections_forklift
 
 
+def make_json(write_path: str):
+    data = {
+    "minimum_distance": tags[0],
+    "average_distance": tags[1],
+    "proximity_score" : tags[2],
 
-def main(address: str, video_mode: str):
-
-    if video_mode == "LIVE":
-        #  For Live video capture
-        cap = cv2.VideoCapture(0)
-        cap.set(3,1280)     # Width of 128
-        cap.set(4,720)      # Length of 720
+    }
+    
+    with open(write_path, "w") as f:
+        json.dump(data, f, indent=4)
 
 
-    elif video_mode == "MP4":
-        #  For Video Processing mp4 format
-        cap = cv2.VideoCapture(address)
-        #mask = cv2.imread('venv/YOLO_basics/CAR_MASK.png')   # make mask from canva.com
+
+def process_video(video_path: str, object_counter_requirement: bool, class_names: List):
+    cap = cv2.VideoCapture(video_path)
+
+    if not cap.isOpened():
+        print("Error opening video file")
+        return
+
+    global frame_number
+    frame_number = 0
+
+    while True:
+        success, frame = cap.read()
+        if not success:
+            print("No more frames to capture")
+            break  # Exit the loop if reading fails
+
+        # Save the current frame as a temporary PNG file
+        temp_frame_path = "venv/output_frames/temp_frame.png"
+        cv2.imwrite(temp_frame_path, frame)
+
+        # Call the main function with the temporary PNG frame
+        print (main(temp_frame_path ,True, "PNG"))
+
+        #frame_number += 1
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+
+def main(address: str,  object_counter_requirement: bool, video_mode: str):
+
+    if video_mode != "PNG":
+        print("Unsupported video mode. Only 'PNG' mode is supported.")
+        return
+
+    # global frame_number
+    # frame_number += 1
+
+    # For processing a single frame in PNG format
+    img = cv2.imread(address)
+    if img is None:
+        print("Failed to read the image")
+        return
+
+    result = model(img, device="mps", stream=True)  # Use mps and stream feature
+    detections = np.empty((0, 5))
 
 
     while True:
@@ -286,12 +367,12 @@ def main(address: str, video_mode: str):
         frame_number += 1
         print (frame_number)
         
-        success, img = cap.read()
+        img = cv2.imread(address)
 
-        if not success:
-            print("No more Frames to capture")
-            break  # Exit the loop if reading fails
-        
+        if img is None:
+            print("Failed to read the image")
+            return
+            
         img = cv2.resize(img, (1280, 720))
 
         if video_mode == "MP4":
@@ -330,17 +411,25 @@ def main(address: str, video_mode: str):
                 # detections_person = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
 
                 if (currentClass == "person"):
-                    detections_person = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
+                    detections_person, output_image_path = person_proximity_alert(img, box, cls, detections_forklift, currentClass, class_names )
 
                 elif (currentClass == "forklift"):
                     detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
             
                 # for key, value in voilation_dict.items():
                 #     print(f"{key}: {value}")
-        
+
+                output_json_path = f"{output_file_base}_{frame_number}.json"
+                make_json(output_json_path)
+
+        print (tags[0], tags[1], tags[2])
+
+
         cv2.imshow("Image", img)    # Show images
         torch.mps.empty_cache()
         cv2.waitKey(1)
+
+        return output_image_path, output_json_path
 
     
 
@@ -348,7 +437,7 @@ def main(address: str, video_mode: str):
 
 
 
-main(address='venv/YOLO_basics/forklift_final.mp4', video_mode="MP4")
-
-for key, value in forklift_coordinates.items():
-    print(f"{key}: {value}")
+#main(address='venv/YOLO_basics/forklift_final.mp4', video_mode="MP4")
+process_video('venv/YOLO_basics/forklift_final.mp4', True, [])
+# for key, value in forklift_coordinates.items():
+#     print(f"{key}: {value}")
