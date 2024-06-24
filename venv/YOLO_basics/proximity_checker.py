@@ -18,7 +18,7 @@ import numpy as np
 #######################################################################################################
 
 # load model
-
+''
 model = YOLO('forklift.pt')
 
 class_names = ['forklift' , 'person']
@@ -41,6 +41,9 @@ violators_count = 0
 violator_ID = []
 
 average_distance = []
+
+people_distance = None
+
 tags = [None, None, None]
 
 
@@ -76,6 +79,7 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
     """
     global tags
     global average_distance
+    global people_distance
     global forklift_coordinates
     all_distances = []
 
@@ -103,9 +107,13 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
 
         all_distances.append(distance_from_center)
 
+
+
+
     all_distances.sort()
     min_distance = all_distances[0]
-    tags[0] = min_distance
+
+    
     tags[1] = sum(average_distance) / len(average_distance)
     tags[2] = safety_condition(tags[1])
 
@@ -126,13 +134,24 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
         cv2.rectangle(img, (x1_person,y1_person), (x2_person,y2_person), (0,255,0), 1)     # Making rectangle
         cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), (0, 255, 0), 3)
         cvzone.putTextRect(img, f"{min_distance:.2f}", ((person_center_coordinates[0]+forklift_center_coordinates[0])//2, (person_center_coordinates[1]+forklift_center_coordinates[1])//2 ), scale=1,thickness=1,colorR=(0, 255, 0), colorT=(0,0,0) ) 
+        if people_distance is None:
+            people_distance = distance_from_center
+        elif people_distance >= distance_from_center:
+            people_distance = distance_from_center
+
+
 
     elif min_distance <= 100:
         cvzone.putTextRect(img, 'Person', (max(x1_person, 0), max(35, y1_person - 10)), scale=1,thickness=1,colorR=(0, 0, 255), colorT=(0,0,0) )
         cv2.rectangle(img, (x1_person,y1_person), (x2_person,y2_person), (0,0,255), 1)     # Making rectangle
         cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), (0, 0, 255), 3)
         cvzone.putTextRect(img, f"{min_distance:.2f}", ((person_center_coordinates[0]+forklift_center_coordinates[0])//2, (person_center_coordinates[1]+forklift_center_coordinates[1])//2 ), scale=1,thickness=1,colorR=(0, 0, 255), colorT=(0,0,0) ) 
-       
+        if people_distance is None:
+            people_distance = distance_from_center
+        elif people_distance >= distance_from_center:
+            people_distance = distance_from_center
+
+
     else :
         colour = (0,255,255)
         min_distance_new = min_distance - 100
@@ -144,6 +163,10 @@ def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_pe
         cv2.rectangle(img, (x1_person, y1_person), (x2_person, y2_person), new_colour, 2)
         cv2.line(img, ((x1_person+x2_person)//2,(y1_person+y2_person)//2), ((x1_forklift+x2_forklift)//2,(y1_forklift+y2_forklift)//2), new_colour, 3) 
         cvzone.putTextRect(img, f"{min_distance:.2f}", ((person_center_coordinates[0]+forklift_center_coordinates[0])//2, (person_center_coordinates[1]+forklift_center_coordinates[1])//2 ), scale=1,thickness=1,colorR=new_colour, colorT=(0,0,0) ) 
+        if people_distance is None:
+            people_distance = distance_from_center
+        elif people_distance >= distance_from_center:
+            people_distance = distance_from_center
 
 
     output_image_path = f"venv/YOLO_basics/output_images/frame_{frame_number}.png"
@@ -168,7 +191,7 @@ def person_proximity_alert(img, box, cls: int, detections_person, current_class:
     output_image_path = None
     if current_class == "person":
         
-    
+ 
         x1,y1,x2,y2,conf = bounding_box(box,img, show_box_for_all=True)
 
         if conf >= 0.40:
@@ -193,8 +216,16 @@ def person_proximity_alert(img, box, cls: int, detections_person, current_class:
             output_image_path = distance_calculator_and_colourer (img, x1, y1, x2, y2)
             #cvzone.putTextRect(img, f"ID - {int(Id)}", (max(x2 - w - 10, 0),max(y2 - 10, h) ), 1.5, 2)
 
+            
             # cvzone.putTextRect(img,f'{class_names[cls]} {conf}', (max(x1, 0), max(35, y1-10)), 2, 2)
             # cv2.rectangle(img, (x1,y1), (x2,y2), (255,0,255),3)     # Making rectangle
+
+    if people_distance:
+        tags[0] = people_distance
+    else:
+        # Handle the case when people_distance is empty
+        tags[0] = None  # or any default value that makes sense in your context
+
 
     if output_image_path == None:
         output_image_path = f"venv/YOLO_basics/output_images/frame_{frame_number}.png"
@@ -346,6 +377,9 @@ def process_video(video_path: str, object_counter_requirement: bool, class_names
 
 def main(address: str,  object_counter_requirement: bool, video_mode: str):
 
+    global people_distance
+    people_distance = None
+    
     if video_mode != "PNG":
         print("Unsupported video mode. Only 'PNG' mode is supported.")
         return
@@ -405,8 +439,8 @@ def main(address: str,  object_counter_requirement: bool, video_mode: str):
                 #print (cls)
                 #print (currentClass)
             
-                for key, value in forklift_coordinates.items():
-                    print(f"{key}: {value}")
+                # for key, value in forklift_coordinates.items():
+                #     print(f"{key}: {value}")
 
                 # detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
 
