@@ -18,7 +18,7 @@ import numpy as np
 #######################################################################################################
 
 # load model
-''
+
 model = YOLO('forklift.pt')
 
 class_names = ['forklift' , 'person']
