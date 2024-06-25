@@ -127,7 +127,7 @@ def anomaly_detector(img, box, x1: int, y1: int, x2: int, y2: int , Id: int, cur
                     output_file = f"{output_file_base}_{frame_number}.json"
                     )
 
-                    quit()
+                    # quit()
 
 
    
@@ -254,7 +254,7 @@ def class_to_track(img, box, cls: int, detections, current_class: str, class_nam
 address1 = 'venv/YOLO_basics/helmet.mp4'
 # address2 = 'venv/YOLO_basics/helmet2.mp4'
 # address3 = 'venv/YOLO_basics/helmet3.mp4'
-address4 = 'venv/YOLO_basics/helmet4.mp4'
+address4 = 'venv/YOLO_basics/forklift_final.mp4'
 
 address = address1
 
@@ -283,6 +283,7 @@ tracker = Sort(max_age=200, min_hits=50, iou_threshold=0.5)   # Used for trackin
 ###############################################################################################
 
 def main(address: str, video_mode: str, object_counter_requirement: bool, class_names: List):
+
     if video_mode != "PNG":
         print("Unsupported video mode. Only 'PNG' mode is supported.")
         return
@@ -315,7 +316,7 @@ def main(address: str, video_mode: str, object_counter_requirement: bool, class_
     print(no_safety_vest_people_count)
     print(safety_vest_people_count)
     print("\nsafety_score")
-    print(((safety_vest_people_count / (safety_vest_people_count + no_safety_vest_people_count)) * 100))
+    # print(((safety_vest_people_count / (safety_vest_people_count + no_safety_vest_people_count)) * 100))
 
     cv2.imshow("Image", img)  # Show images
     torch.mps.empty_cache()

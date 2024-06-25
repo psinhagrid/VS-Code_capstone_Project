@@ -13,6 +13,14 @@ from sort import *
 from API_call import *
 from Utils import *
 import numpy as np
+import time
+import threading
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np  # Import numpy for array handling
+
+
 
 
 #######################################################################################################
@@ -46,6 +54,8 @@ people_distance = None
 
 tags = [None, None, None]
 
+min_distance_list = [0]
+
 
 #######################################################################################################
 
@@ -67,6 +77,34 @@ def safety_condition(label_to_genrate):
     else :
         return "EXCELLENT"
     
+
+def simple_plot(numbers, figsize=(8, 6), linestyle='-', marker='o', color='b', title=None, xlabel='Index', ylabel='Value'):
+    # Input validation
+    if not isinstance(numbers, (list, np.ndarray)):
+        raise TypeError('Input numbers must be a list or numpy array.')
+
+    if len(numbers) == 0:
+        raise ValueError('Input numbers should not be empty.')
+
+    indices = list(range(len(numbers)))
+
+    # Plotting index vs. value
+    plt.figure(figsize=figsize)
+    plt.plot(indices, numbers, marker=marker, linestyle=linestyle, color=color, label='Index vs Value')
+
+    
+    # Adding labels and title
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    if title:
+        plt.title(title)
+    else:
+        plt.title('Plot of Index vs Value')
+    plt.legend()
+
+    # Display the plot
+    plt.show()
+
 
 def distance_calculator_and_colourer(img, x1_person, y1_person, x2_person, y2_person):
     """
@@ -368,8 +406,13 @@ def process_video(video_path: str, object_counter_requirement: bool, class_names
         # Call the main function with the temporary PNG frame
         print (main(temp_frame_path ,True, "PNG"))
 
+        # print (min_distance_list)
+
+        # if frame_number == 10:
+        #     simple_plot(min_distance_list)
         #frame_number += 1
 
+    
     cap.release()
     cv2.destroyAllWindows()
 
@@ -402,6 +445,7 @@ def main(address: str,  object_counter_requirement: bool, video_mode: str):
         global frame_number
         frame_number += 1
         print (frame_number)
+        output_image_path = None
         
         img = cv2.imread(address)
 
@@ -451,6 +495,12 @@ def main(address: str,  object_counter_requirement: bool, video_mode: str):
 
                 elif (currentClass == "forklift"):
                     detections_forklift = fork_lift_tracker(img, box, cls, detections_forklift, currentClass, class_names )
+
+                if output_image_path == None:
+                    output_image_path = f"venv/YOLO_basics/output_images/frame_{frame_number}.png"
+                    os.makedirs(os.path.dirname(output_image_path), exist_ok=True)  # Ensure the directory exists
+                    cv2.imwrite(output_image_path, img)  # Save the image  
+
             
                 # for key, value in voilation_dict.items():
                 #     print(f"{key}: {value}")
@@ -460,11 +510,18 @@ def main(address: str,  object_counter_requirement: bool, video_mode: str):
 
         print (tags[0], tags[1], tags[2])
 
+        global min_distance_list
+        if tags[0] is not None and tags[0] > 100 :
+            min_distance_list.append(tags[0])
+
+        
+
 
         cv2.imshow("Image", img)    # Show images
         torch.mps.empty_cache()
         cv2.waitKey(1)
 
+        # print("\nMIN DISTANCE LIST : ", min_distance_list)
         return output_image_path, output_json_path
 
     
@@ -472,8 +529,13 @@ def main(address: str,  object_counter_requirement: bool, video_mode: str):
 
 
 
+# simple_plot([0, 213.56497840235883, 215.00232556881798, 212.30167215544958, 208.06249061279644, 203.21663317750347, 200.39211561336438])
 
 #main(address='venv/YOLO_basics/forklift_final.mp4', video_mode="MP4")
+
+# numbers = [0, 213.56497840235883, 215.00232556881798, 212.30167215544958, 208.06249061279644, 203.21663317750347, 200.39211561336438]
+# simple_plot(numbers)
+
 process_video('venv/YOLO_basics/forklift_final.mp4', True, [])
-# for key, value in forklift_coordinates.items():
-#     print(f"{key}: {value}")
+
+
