@@ -16,9 +16,10 @@ import numpy as np
 import time
 import threading
 
+import matplotlib
+matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np  # Import numpy for array handling
+
 
 
 
@@ -54,6 +55,8 @@ people_distance = None
 
 tags = [None, None, None]
 
+
+
 min_distance_list = [0]
 
 
@@ -79,6 +82,9 @@ def safety_condition(label_to_genrate):
     
 
 def simple_plot(numbers, figsize=(8, 6), linestyle='-', marker='o', color='b', title=None, xlabel='Index', ylabel='Value'):
+
+    matplotlib.use('TkAgg')
+
     # Input validation
     if not isinstance(numbers, (list, np.ndarray)):
         raise TypeError('Input numbers must be a list or numpy array.')
@@ -537,5 +543,10 @@ def main(address: str,  object_counter_requirement: bool, video_mode: str):
 # simple_plot(numbers)
 
 process_video('venv/YOLO_basics/forklift_final.mp4', True, [])
+
+# print (min_distance_list)
+# simple_plot(min_distance_list)
+
+
 
 

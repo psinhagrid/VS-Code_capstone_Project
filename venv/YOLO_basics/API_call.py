@@ -10,7 +10,7 @@ def Gen_AI_call ():
     # In the following image, what is the location of person not wearing safety vest? That person should have ID of 1 at the bottom of the box. Give that person's location with respect to the image and other people in the image. Is the person on the left or right of the image?
     
     # Instantiate the Groq client object with the API key
-    client = Groq(api_key='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')
+    client = Groq(api_key='')
 
     completion = client.chat.completions.create(
         model="gemma-7b-it",
