@@ -1,0 +1,29 @@
+# Core dependencies
+ultralytics==8.2.11
+opencv-python==4.9.0.80
+numpy==1.26.4
+torch==2.3.0
+torchvision==0.18.0
+
+# Image processing
+cvzone==1.5.6
+pillow==10.3.0
+scikit-image==0.23.2
+
+# Tracking
+filterpy==1.4.5
+scipy==1.13.0
+
+# Configuration and utilities
+pyyaml==6.0.1
+
+# Kafka support (optional)
+confluent-kafka==2.3.0
+
+# Logging and monitoring
+tqdm==4.66.4
+
+# Development dependencies (optional)
+# pytest==8.1.1
+# black==24.3.0
+# flake8==7.0.0

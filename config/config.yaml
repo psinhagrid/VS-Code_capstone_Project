@@ -1,0 +1,85 @@
+# PPE Detection System Configuration
+
+# Model Configuration
+model:
+  weights_path: "fine_tuned_weights.pt"
+  device: "mps"  # Options: cpu, cuda, mps (for Mac M1/M2)
+  confidence_threshold: 0.5
+  
+# Class Names
+classes:
+  all_classes:
+    - "Hardhat"
+    - "Mask"
+    - "NO_Hardhat"
+    - "NO-Mask"
+    - "NO-Safety Vest"
+    - "Person"
+    - "Safety Cone"
+    - "Safety Vest"
+    - "machinery"
+    - "vehicle"
+    - "person"
+  
+  violation_classes:
+    - "NO-Safety Vest"
+    - "NO_Hardhat"
+    - "NO-Mask"
+  
+  compliant_classes:
+    - "Safety Vest"
+    - "Hardhat"
+    - "Mask"
+
+# Tracking Configuration
+tracking:
+  max_age: 200
+  min_hits: 50
+  iou_threshold: 0.5
+  violation_frame_threshold: 50  # Frames before raising alert
+  frame_window: 10  # Frame tolerance window
+
+# Video Processing
+video:
+  input_path: "data/input/video.mp4"
+  output_path: "data/output/videos/output.mp4"
+  display_video: true
+  save_frames: true
+  frame_skip: 1  # Process every nth frame (1 = process all frames)
+
+# Output Configuration
+output:
+  json_dir: "data/output/json"
+  image_dir: "data/output/images"
+  video_dir: "data/output/videos"
+  log_dir: "logs"
+  
+# Alert Configuration
+alerts:
+  severity_levels:
+    high: ["NO_Hardhat", "NO-Mask"]
+    medium: ["NO-Safety Vest"]
+  metadata:
+    camera_id: "CAM01"
+    location: "Warehouse Section A"
+    environmental_conditions: "Normal"
+
+# Kafka Configuration (Optional)
+kafka:
+  enabled: false
+  bootstrap_servers: "localhost:9092"
+  topic_name: "ppe-violations"
+  group_id: "ppe-detector-group"
+  producer:
+    compression_type: "gzip"
+    batch_size: 16384
+  consumer:
+    auto_offset_reset: "earliest"
+    enable_auto_commit: true
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_enabled: true
+  console_enabled: true
